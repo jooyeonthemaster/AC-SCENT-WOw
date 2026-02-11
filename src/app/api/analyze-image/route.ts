@@ -6,6 +6,7 @@ import { transformError } from './utils/errorHandler'
 import { CACHE_EXPIRY_TIME } from '@/lib/constants/app'
 import type { CachedResult } from './types'
 import { logger } from '@/lib/utils/logger'
+import { generateRequestId } from './constants'
 
 // In-memory cache for analysis results (by analysisId)
 export const resultsCache = new Map<string, CachedResult>()
@@ -13,11 +14,12 @@ export const resultsCache = new Map<string, CachedResult>()
 // In-memory stats for perfume recommendations
 export const recommendationStats = new Map<string, number>()
 
-// Vercel timeout configuration
-export const maxDuration = 300 // 5 minutes
+// Vercel timeout configuration (must be literal for Next.js)
+// Pro 플랜: 최대 300초 (5분)
+export const maxDuration = 300
 
 export async function POST(req: NextRequest) {
-  const requestId = Math.random().toString(36).substr(2, 9)
+  const requestId = generateRequestId()
 
   try {
     // 1. Parse and validate request

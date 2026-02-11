@@ -8,6 +8,7 @@ import { domToPng } from 'modern-screenshot'
 import { ShareAnalysisData } from '@/types/analysis'
 import { ShareCardNew } from './ShareCardNew'
 import { logger } from '@/lib/utils/logger'
+import { SHARE_CARD_DIMENSIONS, COPY_SUCCESS_DURATION, PREVIEW_SCALE } from './ShareModal/constants'
 
 interface ShareModalProps {
   isOpen: boolean
@@ -100,9 +101,9 @@ export function ShareModal({
       await waitForAssets(cardRef.current)
 
       const dataUrl = await domToPng(cardRef.current, {
-        width: 430,
-        height: 932,
-        scale: 2,
+        width: SHARE_CARD_DIMENSIONS.width,
+        height: SHARE_CARD_DIMENSIONS.height,
+        scale: SHARE_CARD_DIMENSIONS.scale,
         backgroundColor: 'transparent'
       })
 
@@ -131,7 +132,7 @@ export function ShareModal({
         // clipboard API 사용 가능한 경우
         await navigator.clipboard.writeText(fullUrl)
         setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
+        setTimeout(() => setCopied(false), COPY_SUCCESS_DURATION)
       } else {
         // fallback: 텍스트 영역 생성 후 복사
         const textArea = document.createElement('textarea')
@@ -146,7 +147,7 @@ export function ShareModal({
         try {
           document.execCommand('copy')
           setCopied(true)
-          setTimeout(() => setCopied(false), 2000)
+          setTimeout(() => setCopied(false), COPY_SUCCESS_DURATION)
         } catch (err) {
           logger.error('Fallback copy failed:', err)
           alert('링크가 복사되었습니다:\n' + fullUrl)
@@ -209,9 +210,9 @@ export function ShareModal({
       await waitForAssets(previewCardRef.current)
 
       const dataUrl = await domToPng(previewCardRef.current, {
-        width: 430,
-        height: 932,
-        scale: 2,
+        width: SHARE_CARD_DIMENSIONS.width,
+        height: SHARE_CARD_DIMENSIONS.height,
+        scale: SHARE_CARD_DIMENSIONS.scale,
         backgroundColor: 'transparent'
       })
 
@@ -428,7 +429,7 @@ export function ShareModal({
                         <div
                           className="origin-center"
                           style={{
-                            transform: 'scale(0.85)',
+                            transform: `scale(${PREVIEW_SCALE})`,
                           }}
                         >
                           <ShareCardNew

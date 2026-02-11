@@ -2,6 +2,7 @@
 
 import { forwardRef, useMemo } from 'react'
 import { ShareAnalysisData, TraitScores, ScentCategoryScores, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS } from '@/types/analysis'
+import { SHARE_CARD_DIMENSIONS } from './ShareModal/constants'
 
 interface ShareCardProps {
     userImage?: string
@@ -103,8 +104,8 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
             <div
                 ref={ref}
                 style={{
-                    width: 430,
-                    height: 932,
+                    width: SHARE_CARD_DIMENSIONS.width,
+                    height: SHARE_CARD_DIMENSIONS.height,
                     position: 'relative',
                     overflow: 'hidden',
                     fontFamily: 'var(--font-jua), "Jua", sans-serif',

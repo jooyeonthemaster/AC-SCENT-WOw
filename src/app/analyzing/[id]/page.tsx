@@ -3,13 +3,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { logger } from '@/lib/utils/logger'
+import { LOADING_MESSAGES, PROGRESS_CONFIG, TIMEOUT_CONFIG } from './constants'
 
-const loadingMessages = [
-  '이미지를 분석하고 있습니다...',
-  '향의 특성을 파악하고 있습니다...',
-  '당신에게 어울리는 향수를 찾고 있습니다...',
-  '완벽한 매칭을 위해 최종 검토 중입니다...',
-]
+const loadingMessages = LOADING_MESSAGES
 
 const ERROR_MESSAGES = {
   NO_IMAGE: '이미지를 찾을 수 없습니다. 다시 업로드해주세요.',
