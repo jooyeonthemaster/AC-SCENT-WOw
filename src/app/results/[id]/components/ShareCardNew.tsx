@@ -1,7 +1,7 @@
 "use client"
 
 import { forwardRef, useMemo } from 'react'
-import { ImageAnalysisResult, TraitScores, ScentCategoryScores, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS } from '@/types/analysis'
+import { ShareAnalysisData, TraitScores, ScentCategoryScores, CATEGORY_INFO, SEASON_LABELS, TONE_LABELS } from '@/types/analysis'
 
 interface ShareCardProps {
     userImage?: string
@@ -10,7 +10,7 @@ interface ShareCardProps {
     userGender?: string
     perfumeName?: string
     perfumeBrand?: string
-    analysisData: ImageAnalysisResult
+    analysisData: ShareAnalysisData
 }
 
 // 작은 레이더 차트용 계산 함수 (center=60, maxRadius=40)

@@ -9,14 +9,14 @@ import { TraitsChart } from '@/components/results/TraitsChart'
 import { ShareModal } from './components/ShareModal'
 import type { PerfumeRecommendation } from '@/app/api/analyze-image/types'
 import type { Perfume } from '@/lib/data/perfumes'
-import type { ImageAnalysisResult } from '@/types/analysis'
+import type { TraitScores, ScentCategoryScores } from '@/types/analysis'
 
 interface AnalysisData {
   analysisId: string
   analysis: {
     description: string
-    traits: Record<string, number>
-    characteristics: Record<string, number>
+    traits: TraitScores
+    characteristics: ScentCategoryScores
     mood: string[]
     personality: string
   }
@@ -37,10 +37,10 @@ function createAnalysisPerfume(
     mainScent: { name: '' },
     subScent1: { name: '' },
     subScent2: { name: '' },
-    characteristics: analysis.characteristics as any,
+    characteristics: analysis.characteristics,
     category: '',
     recommendation: '',
-    traits: analysis.traits as any,
+    traits: analysis.traits,
     keywords: analysis.mood,
     primaryColor: '#3B82F6',
     secondaryColor: '#8B5CF6',
@@ -304,7 +304,7 @@ export default function ResultsPage() {
           perfumeName={recommendations[0]?.perfume.name || "향수"}
           perfumeBrand={recommendations[0]?.perfume.id || "브랜드"}
           analysisData={{
-            traits: analysis.traits as any,
+            traits: analysis.traits,
             matchingPerfumes: recommendations.map(rec => ({
               persona: {
                 id: rec.perfume.id,
@@ -315,11 +315,10 @@ export default function ResultsPage() {
               },
               confidence: rec.matchConfidence
             })),
-            scentCategories: analysis.characteristics as any,
+            scentCategories: analysis.characteristics,
             personalColor: undefined,
-            matchingKeywords: analysis.mood,
-            dominantColors: []
-          } as unknown as ImageAnalysisResult}
+            matchingKeywords: analysis.mood
+          }}
         />
 
         {/* Home Button */}

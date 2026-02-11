@@ -116,6 +116,24 @@ export interface PerfumeMatchResult {
   reasoning: string;
 }
 
+// Share Card에서 사용하는 간소화된 분석 데이터 타입
+export interface ShareAnalysisData {
+  traits: TraitScores;
+  scentCategories: ScentCategoryScores;
+  matchingPerfumes: {
+    persona?: {
+      id: string;
+      mainScent?: { name: string };
+      subScent1?: { name: string };
+      subScent2?: { name: string };
+      keywords?: string[];
+    };
+    confidence: number;
+  }[];
+  personalColor?: PersonalColor;
+  matchingKeywords?: string[];
+}
+
 // 사용자 입력 폼 데이터
 export interface FormDataType {
   pin: string;

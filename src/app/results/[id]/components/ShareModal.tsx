@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Link2, Image, Download, Loader2, Check, ArrowLeft } from 'lucide-react'
 import { domToPng } from 'modern-screenshot'
-import { ImageAnalysisResult } from '@/types/analysis'
+import { ShareAnalysisData } from '@/types/analysis'
 import { ShareCardNew } from './ShareCardNew'
 
 interface ShareModalProps {
@@ -17,7 +17,7 @@ interface ShareModalProps {
   userGender: string
   perfumeName: string
   perfumeBrand: string
-  analysisData: ImageAnalysisResult
+  analysisData: ShareAnalysisData
   shareUrl?: string
 }
 
