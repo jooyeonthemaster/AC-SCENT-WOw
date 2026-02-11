@@ -3,6 +3,7 @@ import { GeminiAnalysisResult } from '@/types/gemini'
 import { buildAnalysisPrompt } from '../prompts/promptBuilder'
 import { validateAnalysisResult as validateBasic } from '../utils/validators'
 import { runQualityChecks } from '../utils/consistencyCheckers'
+import { logger } from '@/lib/utils/logger'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
@@ -42,7 +43,7 @@ export async function analyzeImageWithGemini(
 
     return analysis
   } catch (error) {
-    console.error('Gemini API error:', error)
+    logger.error('Gemini API error:', error)
     throw new Error('이미지 분석 중 오류가 발생했습니다')
   }
 }
@@ -59,7 +60,7 @@ function parseGeminiResponse(text: string): GeminiAnalysisResult {
     const parsed = JSON.parse(cleaned)
     return parsed as GeminiAnalysisResult
   } catch (error) {
-    console.error('Failed to parse Gemini response:', text)
+    logger.error('Failed to parse Gemini response:', text)
     throw new Error('AI 응답을 파싱하는 중 오류가 발생했습니다')
   }
 }

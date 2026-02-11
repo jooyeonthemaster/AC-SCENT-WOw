@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { logger } from '@/lib/utils/logger'
 
 const loadingMessages = [
   '이미지를 분석하고 있습니다...',
@@ -76,7 +77,7 @@ export default function AnalyzingPage() {
 
         // Call the actual analysis API
         const apiStartTime = Date.now()
-        console.log(`🔍 [Analysis] Starting Gemini API call... (ID: ${analysisId})`)
+        logger.log(`🔍 [Analysis] Starting Gemini API call... (ID: ${analysisId})`)
 
         const response = await fetch('/api/analyze-image', {
           method: 'POST',
@@ -94,7 +95,7 @@ export default function AnalyzingPage() {
 
         const apiEndTime = Date.now()
         const apiDuration = ((apiEndTime - apiStartTime) / 1000).toFixed(2)
-        console.log(`✅ [Analysis] API completed in ${apiDuration}s (ID: ${analysisId})`)
+        logger.log(`✅ [Analysis] API completed in ${apiDuration}s (ID: ${analysisId})`)
 
         if (!data.success) {
           throw new Error(data.error || ERROR_MESSAGES.ANALYSIS_FAILED)
@@ -125,11 +126,11 @@ export default function AnalyzingPage() {
       } catch (err) {
         // Ignore abort errors (expected during cleanup)
         if (err instanceof Error && err.name === 'AbortError') {
-          console.log('🔍 [Analysis] Request aborted (component unmounted)')
+          logger.log('🔍 [Analysis] Request aborted (component unmounted)')
           return
         }
 
-        console.error('Analysis error:', err)
+        logger.error('Analysis error:', err)
         if (isMounted) {
           setError(err instanceof Error ? err.message : ERROR_MESSAGES.ANALYSIS_FAILED)
           setTimeout(() => {

@@ -7,6 +7,7 @@ import { X, Link2, Image, Download, Loader2, Check, ArrowLeft } from 'lucide-rea
 import { domToPng } from 'modern-screenshot'
 import { ShareAnalysisData } from '@/types/analysis'
 import { ShareCardNew } from './ShareCardNew'
+import { logger } from '@/lib/utils/logger'
 
 interface ShareModalProps {
   isOpen: boolean
@@ -110,7 +111,7 @@ export function ShareModal({
       const blob = await response.blob()
       return blob
     } catch (error) {
-      console.error('Image generation error:', error)
+      logger.error('Image generation error:', error)
       return null
     }
   }, [waitForAssets])
@@ -147,7 +148,7 @@ export function ShareModal({
           setCopied(true)
           setTimeout(() => setCopied(false), 2000)
         } catch (err) {
-          console.error('Fallback copy failed:', err)
+          logger.error('Fallback copy failed:', err)
           alert('링크가 복사되었습니다:\n' + fullUrl)
         }
 
@@ -156,7 +157,7 @@ export function ShareModal({
     } catch (error) {
       // 사용자가 공유 취소한 경우 무시
       if ((error as Error).name !== 'AbortError') {
-        console.error('Link share error:', error)
+        logger.error('Link share error:', error)
         alert('공유 중 오류가 발생했습니다.')
       }
     }
@@ -186,7 +187,7 @@ export function ShareModal({
       }
     } catch (error) {
       if ((error as Error).name !== 'AbortError') {
-        console.error('Image share error:', error)
+        logger.error('Image share error:', error)
         alert('이미지 공유 중 오류가 발생했습니다.')
       }
     } finally {
@@ -221,7 +222,7 @@ export function ShareModal({
       link.click()
       document.body.removeChild(link)
     } catch (error) {
-      console.error('Download error:', error)
+      logger.error('Download error:', error)
       alert('다운로드 중 오류가 발생했습니다.')
     } finally {
       setIsGenerating(false)

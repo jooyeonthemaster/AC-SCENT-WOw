@@ -10,6 +10,7 @@ import { ShareModal } from './components/ShareModal'
 import type { PerfumeRecommendation } from '@/app/api/analyze-image/types'
 import type { Perfume } from '@/lib/data/perfumes'
 import type { TraitScores, ScentCategoryScores } from '@/types/analysis'
+import { logger } from '@/lib/utils/logger'
 
 interface AnalysisData {
   analysisId: string
@@ -79,7 +80,7 @@ export default function ResultsPage() {
 
         setData(parsedData)
       } catch (error) {
-        console.error('Failed to parse stored data:', error)
+        logger.error('Failed to parse stored data:', error)
       }
     }
 

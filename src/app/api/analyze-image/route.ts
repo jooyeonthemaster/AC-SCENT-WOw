@@ -5,6 +5,7 @@ import { findBestPerfumeMatch } from './services/perfumeMapper'
 import { transformError } from './utils/errorHandler'
 import { CACHE_EXPIRY_TIME } from '@/lib/constants/app'
 import type { CachedResult } from './types'
+import { logger } from '@/lib/utils/logger'
 
 // In-memory cache for analysis results (by analysisId)
 export const resultsCache = new Map<string, CachedResult>()
@@ -30,17 +31,17 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    console.log(`🚀 [API ${requestId}] POST /api/analyze-image RECEIVED`)
+    logger.log(`🚀 [API ${requestId}] POST /api/analyze-image RECEIVED`)
 
     // 2. Analyze image with Gemini AI
-    console.log(`🔬 [API ${requestId}] Analyzing image with Gemini...`)
+    logger.log(`🔬 [API ${requestId}] Analyzing image with Gemini...`)
     const analysis = await analyzeImageWithGemini(body.image)
-    console.log(`✅ [API ${requestId}] Analysis complete`)
+    logger.log(`✅ [API ${requestId}] Analysis complete`)
 
     // 3. Find top 3 perfume matches
-    console.log(`🔍 [API ${requestId}] Finding top 3 perfume matches...`)
+    logger.log(`🔍 [API ${requestId}] Finding top 3 perfume matches...`)
     const matches = findBestPerfumeMatch(analysis)
-    console.log(`✅ [API ${requestId}] Matches:`, matches.map((m) => m.perfume.name).join(', '))
+    logger.log(`✅ [API ${requestId}] Matches:`, matches.map((m) => m.perfume.name).join(', '))
 
     // 3.1. Convert to PerfumeRecommendation format (confidence → matchConfidence)
     const recommendations = matches.map(match => ({
@@ -70,10 +71,10 @@ export async function POST(req: NextRequest) {
     // 6. Schedule cache cleanup after expiry time
     setTimeout(() => {
       resultsCache.delete(analysisId)
-      console.log(`🗑️ [API] Deleted expired result: ${analysisId}`)
+      logger.log(`🗑️ [API] Deleted expired result: ${analysisId}`)
     }, CACHE_EXPIRY_TIME)
 
-    console.log(`✅ [API ${requestId}] Successfully cached result (ID: ${analysisId})`)
+    logger.log(`✅ [API ${requestId}] Successfully cached result (ID: ${analysisId})`)
 
     // 7. Return response
     return NextResponse.json({
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (error) {
-    console.error(`❌ [API ${requestId}] Analysis error:`, error)
+    logger.error(`❌ [API ${requestId}] Analysis error:`, error)
     const errorMessage = transformError(error)
 
     return NextResponse.json(

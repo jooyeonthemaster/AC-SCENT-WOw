@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { UPLOAD_CONSTRAINTS, ERROR_MESSAGES } from '../constants'
 import type { UseImageUploadReturn } from '../types'
+import { logger } from '@/lib/utils/logger'
 
 export function useImageUpload(): UseImageUploadReturn {
   const router = useRouter()
@@ -44,7 +45,7 @@ export function useImageUpload(): UseImageUploadReturn {
 
       // Validate that we got a proper data URL
       if (!result || !result.startsWith('data:image/')) {
-        console.error('Invalid data URL generated:', result?.substring(0, 50))
+        logger.error('Invalid data URL generated:', result?.substring(0, 50))
         setError(ERROR_MESSAGES.UNKNOWN_ERROR)
         return
       }

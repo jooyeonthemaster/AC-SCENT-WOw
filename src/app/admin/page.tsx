@@ -12,6 +12,7 @@ import {
   CartesianGrid
 } from 'recharts'
 import { RefreshCw, Trash2 } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 interface PerfumeStat {
   perfumeId: string
@@ -59,7 +60,7 @@ export default function AdminPage() {
         setTotalCount(result.data.total)
       }
     } catch (error) {
-      console.error('Failed to fetch stats:', error)
+      logger.error('Failed to fetch stats:', error)
     } finally {
       setLoading(false)
     }
@@ -71,7 +72,7 @@ export default function AdminPage() {
       await fetch('/api/stats', { method: 'DELETE' })
       await fetchStats()
     } catch (e) {
-      console.error(e)
+      logger.error(e)
     }
   }
 
