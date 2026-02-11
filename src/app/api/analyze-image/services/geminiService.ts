@@ -1,6 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { GeminiAnalysisResult } from '@/types/gemini'
 import { buildAnalysisPrompt } from '../prompts/promptBuilder'
+import { validateAnalysisResult as validateBasic } from '../utils/validators'
+import { runQualityChecks } from '../utils/consistencyCheckers'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
@@ -62,144 +64,13 @@ function parseGeminiResponse(text: string): GeminiAnalysisResult {
   }
 }
 
+/**
+ * 분석 결과 검증 (기본 + 품질)
+ */
 function validateAnalysisResult(result: any): void {
-  // ===== 기본 검증 (필수 필드 및 범위) =====
-  const required = ['description', 'traits', 'characteristics', 'mood', 'personality']
+  // 기본 검증 (필수 필드 및 범위)
+  validateBasic(result)
 
-  for (const field of required) {
-    if (!(field in result)) {
-      throw new Error(`Missing required field: ${field}`)
-    }
-  }
-
-  // Validate trait scores (0-10)
-  const traitKeys = [
-    'sexy', 'cute', 'charisma', 'darkness', 'freshness',
-    'elegance', 'freedom', 'luxury', 'purity', 'uniqueness',
-  ]
-
-  for (const key of traitKeys) {
-    const value = result.traits[key]
-    if (typeof value !== 'number' || value < 0 || value > 10) {
-      throw new Error(`Invalid trait value for ${key}: ${value}`)
-    }
-  }
-
-  // Validate characteristics scores (0-10)
-  const charKeys = ['citrus', 'floral', 'woody', 'musky', 'fruity', 'spicy']
-
-  for (const key of charKeys) {
-    const value = result.characteristics[key]
-    if (typeof value !== 'number' || value < 0 || value > 10) {
-      throw new Error(`Invalid characteristic value for ${key}: ${value}`)
-    }
-  }
-
-  // Validate mood array
-  if (!Array.isArray(result.mood) || result.mood.length === 0) {
-    throw new Error('Mood must be a non-empty array')
-  }
-
-  // ===== 추가 검증 (일관성 및 품질 체크) =====
-  // 아래 검증은 경고만 출력하고 예외를 발생시키지 않습니다.
-  // 사용자 경험을 해치지 않으면서도 프롬프트 개선에 필요한 데이터를 수집합니다.
-
-  const traits = result.traits
-  const traitValues = Object.values(traits) as number[]
-
-  // 1. 상충 관계 검사
-  if (traits.cute > 7 && traits.sexy > 6) {
-    console.warn('⚠️ Inconsistency detected: High cute and sexy scores together', {
-      cute: traits.cute,
-      sexy: traits.sexy,
-    })
-  }
-
-  if (traits.darkness > 7 && traits.freshness > 5) {
-    console.warn('⚠️ Inconsistency detected: High darkness and freshness scores together', {
-      darkness: traits.darkness,
-      freshness: traits.freshness,
-    })
-  }
-
-  if (traits.purity > 7 && traits.luxury > 6) {
-    console.warn('⚠️ Inconsistency detected: High purity and luxury scores together', {
-      purity: traits.purity,
-      luxury: traits.luxury,
-    })
-  }
-
-  // 2. 극단값 방지 (점수 분포 균형)
-  const highScores = traitValues.filter((v) => v >= 7).length
-  const lowScores = traitValues.filter((v) => v <= 3).length
-
-  if (highScores > 6) {
-    console.warn('⚠️ Score distribution too extreme: Too many high scores (>= 7)', {
-      highScores,
-      traitValues,
-    })
-  }
-
-  if (lowScores > 6) {
-    console.warn('⚠️ Score distribution too extreme: Too many low scores (<= 3)', {
-      lowScores,
-      traitValues,
-    })
-  }
-
-  // 3. 10점 만점 제한
-  const maxScores = traitValues.filter((v) => v >= 9).length
-  if (maxScores > 2) {
-    console.warn('⚠️ Too many maximum scores (>= 9)', {
-      maxScores,
-      traitValues,
-    })
-  }
-
-  // 4. Characteristics와 Traits 일관성 (샘플 체크)
-  const chars = result.characteristics
-
-  // citrus는 freshness와 freedom에서 도출되어야 함
-  const expectedCitrus = traits.freshness * 0.6 + traits.freedom * 0.4
-  if (Math.abs(chars.citrus - expectedCitrus) > 3) {
-    console.warn('⚠️ Citrus score inconsistent with traits', {
-      citrus: chars.citrus,
-      expectedCitrus: expectedCitrus.toFixed(1),
-      freshness: traits.freshness,
-      freedom: traits.freedom,
-    })
-  }
-
-  // musky는 sexy와 darkness에서 도출되어야 함
-  const expectedMusky = traits.sexy * 0.5 + traits.darkness * 0.3
-  if (Math.abs(chars.musky - expectedMusky) > 3) {
-    console.warn('⚠️ Musky score inconsistent with traits', {
-      musky: chars.musky,
-      expectedMusky: expectedMusky.toFixed(1),
-      sexy: traits.sexy,
-      darkness: traits.darkness,
-    })
-  }
-
-  // 5. 전체 점수가 너무 평균적인지 체크 (차별성 부족)
-  const mean = traitValues.reduce((sum, v) => sum + v, 0) / traitValues.length
-  const variance =
-    traitValues.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / traitValues.length
-  const stdDev = Math.sqrt(variance)
-
-  if (stdDev < 1.5) {
-    console.warn('⚠️ Low score variance: All traits are too similar (stdDev < 1.5)', {
-      stdDev: stdDev.toFixed(2),
-      mean: mean.toFixed(2),
-      traitValues,
-    })
-  }
-
-  // 검증 완료 로그 (디버깅용)
-  console.log('✅ Analysis result validated successfully', {
-    traitsRange: `${Math.min(...traitValues)}-${Math.max(...traitValues)}`,
-    stdDev: stdDev.toFixed(2),
-    highScores,
-    maxScores,
-  })
+  // 품질 검증 (일관성 체크, 경고만 출력)
+  runQualityChecks(result)
 }
