@@ -1,6 +1,7 @@
 import { Perfume, perfumes } from '@/lib/data/perfumes'
 import { GeminiAnalysisResult } from '@/types/gemini'
 import { PerfumeMatchResult } from '@/types/analysis'
+import { TRAIT_LABELS, CHARACTERISTIC_LABELS } from '@/lib/constants/labels'
 
 export function findBestPerfumeMatch(
   analysis: GeminiAnalysisResult
@@ -137,8 +138,8 @@ function generateMatchReasoning(
   charEntries.sort((a, b) => b[1] - a[1])
   const topChars = charEntries.slice(0, 2)
 
-  // Korean trait names
-  const traitNames: Record<string, string> = {
+  // Korean trait names with adjective form
+  const traitNamesAdj: Record<string, string> = {
     sexy: '섹시한',
     cute: '귀여운',
     charisma: '카리스마 넘치는',
@@ -151,17 +152,8 @@ function generateMatchReasoning(
     uniqueness: '독특한',
   }
 
-  const charNames: Record<string, string> = {
-    citrus: '시트러스',
-    floral: '플로럴',
-    woody: '우디',
-    musky: '머스크',
-    fruity: '프루티',
-    spicy: '스파이시',
-  }
-
-  const traitText = topTraits.map(([k]) => traitNames[k]).join(', ')
-  const charText = topChars.map(([k]) => charNames[k]).join(', ')
+  const traitText = topTraits.map(([k]) => traitNamesAdj[k]).join(', ')
+  const charText = topChars.map(([k]) => CHARACTERISTIC_LABELS[k as keyof typeof CHARACTERISTIC_LABELS]).join(', ')
 
   // Different message for surprise recommendations
   if (isSurprise) {

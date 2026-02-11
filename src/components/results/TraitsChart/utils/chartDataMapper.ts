@@ -5,7 +5,7 @@ import type { ChartDataPoint } from '../types'
 export function mapTraitsToChartData(perfume: Perfume): ChartDataPoint[] {
   // Convert traits object to array and sort by value descending
   const traitsArray = Object.entries(perfume.traits).map(([key, value]) => ({
-    trait: TRAIT_LABELS[key] || key,
+    trait: TRAIT_LABELS[key as keyof typeof TRAIT_LABELS] || key,
     value,
   }))
 

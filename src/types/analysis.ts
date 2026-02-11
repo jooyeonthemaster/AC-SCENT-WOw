@@ -130,19 +130,8 @@ export interface FormDataType {
   image: File | null;
 }
 
-// 트레이트 라벨 맵
-export const TRAIT_LABELS: Record<keyof TraitScores, string> = {
-  sexy: '섹시함',
-  cute: '귀여움',
-  charisma: '카리스마',
-  darkness: '다크함',
-  freshness: '청량함',
-  elegance: '우아함',
-  freedom: '자유로움',
-  luxury: '럭셔리함',
-  purity: '순수함',
-  uniqueness: '독특함'
-};
+// 트레이트 라벨 맵 (중앙 관리)
+export { TRAIT_LABELS, CHARACTERISTIC_LABELS } from '@/lib/constants/labels';
 
 // 트레이트 아이콘 맵
 export const TRAIT_ICONS: Record<keyof TraitScores, string> = {
