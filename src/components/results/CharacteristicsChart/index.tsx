@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import {
   Radar,
   RadarChart,
@@ -14,14 +14,7 @@ import { CHART_CONFIG } from './constants'
 import type { CharacteristicsChartProps } from './types'
 
 export function CharacteristicsChart({ perfume }: CharacteristicsChartProps) {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  const isMobile = true
 
   const data = useMemo(
     () => mapCharacteristicsToChartData(perfume),
@@ -36,21 +29,21 @@ export function CharacteristicsChart({ perfume }: CharacteristicsChartProps) {
     <div className="w-full">
       <ResponsiveContainer width="100%" height={chartHeight}>
         <RadarChart data={data}>
-          <PolarGrid stroke={perfume.secondaryColor} strokeOpacity={0.3} />
+          <PolarGrid stroke="#E0D0F0" strokeWidth={1.5} />
           <PolarAngleAxis
             dataKey="characteristic"
-            tick={{ fill: '#374151', fontSize }}
+            tick={{ fill: '#5D4E6D', fontSize, fontWeight: 600 }}
           />
           <PolarRadiusAxis
             angle={90}
             domain={[0, CHART_CONFIG.fullMark]}
-            tick={{ fill: '#6B7280', fontSize: tickFontSize }}
+            tick={{ fill: '#8B7B9B', fontSize: tickFontSize }}
           />
           <Radar
             name="향의 특성"
             dataKey="value"
-            stroke={perfume.secondaryColor}
-            fill={perfume.primaryColor}
+            stroke="#D4A5FF"
+            fill="#FFB3E5"
             fillOpacity={0.6}
             strokeWidth={2}
           />

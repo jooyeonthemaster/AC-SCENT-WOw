@@ -1,13 +1,12 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   ResponsiveContainer,
   Cell,
 } from 'recharts'
@@ -15,15 +14,12 @@ import { mapTraitsToChartData } from './utils/chartDataMapper'
 import { CHART_CONFIG } from './constants'
 import type { TraitsChartProps } from './types'
 
-export function TraitsChart({ perfume }: TraitsChartProps) {
-  const [isMobile, setIsMobile] = useState(false)
+const TOP_TRAIT_COUNT = 3
+const COLOR_ACCENT = '#BB0000'
+const COLOR_DEFAULT = '#1A1A1A'
 
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+export function TraitsChart({ perfume }: TraitsChartProps) {
+  const isMobile = true
 
   const data = useMemo(() => mapTraitsToChartData(perfume), [perfume])
 
@@ -40,18 +36,33 @@ export function TraitsChart({ perfume }: TraitsChartProps) {
           layout="vertical"
           margin={{ left: leftMargin, right: rightMargin }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis type="number" domain={[0, CHART_CONFIG.maxValue]} />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="#EEEEEE"
+            horizontal={true}
+            vertical={false}
+          />
+          <XAxis
+            type="number"
+            domain={[0, CHART_CONFIG.maxValue]}
+            tick={{ fill: '#999', fontSize: isMobile ? 10 : 11 }}
+            axisLine={{ stroke: '#EEE' }}
+            tickLine={{ stroke: '#EEE' }}
+          />
           <YAxis
             type="category"
             dataKey="trait"
             width={yAxisWidth}
-            tick={{ fontSize: isMobile ? 11 : 12 }}
+            tick={{ fill: '#333', fontSize: isMobile ? 11 : 12, fontWeight: 600 }}
+            axisLine={false}
+            tickLine={false}
           />
-          <Tooltip />
-          <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={perfume.primaryColor} />
+          <Bar dataKey="value" radius={[0, 3, 3, 0]}>
+            {data.map((_, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={index < TOP_TRAIT_COUNT ? COLOR_ACCENT : COLOR_DEFAULT}
+              />
             ))}
           </Bar>
         </BarChart>

@@ -6,6 +6,7 @@ export interface GeminiAnalysisResult {
   characteristics: Characteristics
   mood: string[]
   personality: string
+  fanLetter: string
 }
 
 export interface Traits {

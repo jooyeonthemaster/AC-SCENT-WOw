@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateImageRequest } from './utils/validator'
-import { analyzeImageWithGemini } from './services/geminiService'
+import { analyzeImageWithGemini, generateReasoningsWithGemini } from './services/geminiService'
 import { findBestPerfumeMatch } from './services/perfumeMapper'
 import { transformError } from './utils/errorHandler'
 import { CACHE_EXPIRY_TIME } from '@/lib/constants/app'
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     logger.log(`🚀 [API ${requestId}] POST /api/analyze-image RECEIVED`)
 
-    // 2. Analyze image with Gemini AI
+    // 2. [1차] Analyze image with Gemini AI (주접 스타일 description + fanLetter 포함)
     logger.log(`🔬 [API ${requestId}] Analyzing image with Gemini...`)
     const analysis = await analyzeImageWithGemini(body.image)
     logger.log(`✅ [API ${requestId}] Analysis complete`)
@@ -45,23 +45,35 @@ export async function POST(req: NextRequest) {
     const matches = findBestPerfumeMatch(analysis)
     logger.log(`✅ [API ${requestId}] Matches:`, matches.map((m) => m.perfume.name).join(', '))
 
-    // 3.1. Convert to PerfumeRecommendation format (confidence → matchConfidence)
-    const recommendations = matches.map(match => ({
+    // 4. [2차] Generate AI-powered 주접 reasoning for each perfume
+    logger.log(`✍️ [API ${requestId}] Generating 주접 reasonings with Gemini...`)
+    const aiReasonings = await generateReasoningsWithGemini(
+      analysis,
+      matches.map((m, idx) => ({
+        perfume: m.perfume,
+        isSurprise: idx === 2, // 3번째는 서프라이즈
+      }))
+    )
+    logger.log(`✅ [API ${requestId}] Reasonings generated: ${aiReasonings.length > 0 ? 'AI' : 'fallback'}`)
+
+    // 4.1. Convert to PerfumeRecommendation format
+    const recommendations = matches.map((match, idx) => ({
       perfume: match.perfume,
       matchConfidence: match.confidence,
-      reasoning: match.reasoning
+      // AI reasoning 성공 시 사용, 실패 시 fallback
+      reasoning: aiReasonings[idx] || match.reasoning,
     }))
 
-    // 3.2. Track recommendation stats
+    // 4.2. Track recommendation stats
     recommendations.forEach((rec) => {
       const currentCount = recommendationStats.get(rec.perfume.id) || 0
       recommendationStats.set(rec.perfume.id, currentCount + 1)
     })
 
-    // 4. Generate analysis ID
+    // 5. Generate analysis ID
     const analysisId = crypto.randomUUID()
 
-    // 5. Store result in cache
+    // 6. Store result in cache
     const cachedResult: CachedResult = {
       analysis,
       recommendations,
@@ -70,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     resultsCache.set(analysisId, cachedResult)
 
-    // 6. Schedule cache cleanup after expiry time
+    // 7. Schedule cache cleanup after expiry time
     setTimeout(() => {
       resultsCache.delete(analysisId)
       logger.log(`🗑️ [API] Deleted expired result: ${analysisId}`)
@@ -78,7 +90,7 @@ export async function POST(req: NextRequest) {
 
     logger.log(`✅ [API ${requestId}] Successfully cached result (ID: ${analysisId})`)
 
-    // 7. Return response
+    // 8. Return response
     return NextResponse.json({
       success: true,
       data: {
@@ -89,6 +101,7 @@ export async function POST(req: NextRequest) {
           characteristics: analysis.characteristics,
           mood: analysis.mood,
           personality: analysis.personality,
+          fanLetter: analysis.fanLetter,
         },
         recommendations,
       },

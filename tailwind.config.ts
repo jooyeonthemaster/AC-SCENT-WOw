@@ -1,34 +1,50 @@
-import type { Config } from 'tailwindcss'
+import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
-        'perfume-primary': 'var(--perfume-primary)',
-        'perfume-secondary': 'var(--perfume-secondary)',
+        // Primary Colors - Black / White / Red
+        'bg-main': '#FFFFFF',
+        'bg-card': '#FFFFFF',
+        'text-primary': '#1A1A1A',
+        'text-secondary': '#555',
+        'text-accent': '#B00',
       },
-      animation: {
-        'fade-in': 'fadeIn 0.5s ease-in',
-        'slide-up': 'slideUp 0.5s ease-out',
+      fontFamily: {
+        sans: ['var(--font-main)', 'Noto Sans KR', 'system-ui', 'sans-serif'],
+        hand: ['var(--font-hand)', 'cursive'],
+        display: ['var(--font-display)', 'sans-serif'],
       },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
+      borderRadius: {
+        'sticky': '20px',
+        'sticky-lg': '24px',
+        'sticky-xl': '28px',
+        'sticky-2xl': '32px',
+      },
+      boxShadow: {
+        'sticky': '0 8px 24px rgba(0, 0, 0, 0.08)',
+        'sticky-lg': '0 12px 32px rgba(0, 0, 0, 0.12)',
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.08)',
+      },
+      height: {
+        'dvh': '100dvh',
+      },
+      minHeight: {
+        'dvh': '100dvh',
+      },
+      spacing: {
+        'touch': '44px',
+        'touch-lg': '48px',
       },
     },
   },
   plugins: [],
-}
+};
 
-export default config
+export default config;

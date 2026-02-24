@@ -1,20 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --perfume-primary: #000000;
-  --perfume-secondary: #666666;
+  /* Fonts */
+  --font-main: var(--font-noto-sans-kr), sans-serif;
+  --font-hand: var(--font-gamja), cursive;
+  --font-display: var(--font-jua), sans-serif;
+
+  /* Primary Colors - Black / White / Red */
+
+  /* Background */
+  --bg-main: #FFFFFF;
+  --bg-card: #FFFFFF;
+
+  /* Text */
+  --text-primary: #1A1A1A;
+
+  /* Letter Design */
+  --envelope-white: #FFFFFF;
+
+  /* Safe Area Insets */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-@layer base {
-  body {
-    @apply antialiased;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: hidden;
+}
+
+/* Prevent stray markers */
+*::marker {
+  content: none;
+}
+
+/* 모바일 뷰포트 높이 보정 (iOS Safari 주소표시줄 대응) */
+html {
+  height: -webkit-fill-available;
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  min-height: -webkit-fill-available;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .font-hand {
+    font-family: var(--font-hand);
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+/* dvh 미지원 브라우저 폴백 */
+@supports not (height: 100dvh) {
+  .h-dvh {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+  .min-h-dvh {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
   }
 }

@@ -3,8 +3,17 @@
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { UPLOAD_CONSTRAINTS, ERROR_MESSAGES } from '../constants'
-import type { UseImageUploadReturn } from '../types'
 import { logger } from '@/lib/utils/logger'
+
+interface UseImageUploadReturn {
+  file: File | null
+  preview: string | null
+  isUploading: boolean
+  error: string | null
+  handleFileSelect: (acceptedFiles: File[]) => void
+  analyzeImage: () => Promise<void>
+  clearImage: () => void
+}
 
 export function useImageUpload(): UseImageUploadReturn {
   const router = useRouter()

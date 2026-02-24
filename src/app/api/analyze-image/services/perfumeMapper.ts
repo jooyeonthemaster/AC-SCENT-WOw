@@ -1,7 +1,6 @@
 import { Perfume, perfumes } from '@/lib/data/perfumes'
 import { GeminiAnalysisResult } from '@/types/gemini'
 import { PerfumeMatchResult } from '@/types/analysis'
-import { TRAIT_LABELS, CHARACTERISTIC_LABELS } from '@/lib/constants/labels'
 
 export function findBestPerfumeMatch(
   analysis: GeminiAnalysisResult
@@ -123,22 +122,12 @@ function calculateMoodOverlap(
   return matches.length / Math.max(analysisKeywords.length, 1)
 }
 
+// Fallback reasoning (AI 생성 실패 시 사용)
 function generateMatchReasoning(
   analysis: GeminiAnalysisResult,
   perfume: Perfume,
   isSurprise: boolean = false
 ): string {
-  // Find top 3 traits from analysis
-  const traitEntries = Object.entries(analysis.traits)
-  traitEntries.sort((a, b) => b[1] - a[1])
-  const topTraits = traitEntries.slice(0, 3)
-
-  // Find top 2 characteristics
-  const charEntries = Object.entries(analysis.characteristics)
-  charEntries.sort((a, b) => b[1] - a[1])
-  const topChars = charEntries.slice(0, 2)
-
-  // Korean trait names with adjective form
   const traitNamesAdj: Record<string, string> = {
     sexy: '섹시한',
     cute: '귀여운',
@@ -152,13 +141,13 @@ function generateMatchReasoning(
     uniqueness: '독특한',
   }
 
-  const traitText = topTraits.map(([k]) => traitNamesAdj[k]).join(', ')
-  const charText = topChars.map(([k]) => CHARACTERISTIC_LABELS[k as keyof typeof CHARACTERISTIC_LABELS]).join(', ')
+  const traitEntries = Object.entries(analysis.traits)
+  traitEntries.sort((a, b) => b[1] - a[1])
+  const topTrait = traitNamesAdj[traitEntries[0][0]] || '특별한'
 
-  // Different message for surprise recommendations
   if (isSurprise) {
-    return `당신의 ${traitText} 매력과는 조금 다른 느낌이지만, ${perfume.name}의 ${charText} 향도 새로운 매력을 발견하게 해줄 거예요! ${perfume.mood} 분위기로 평소와 다른 나를 표현해보세요.`
+    return `이 ${topTrait} 분위기에 ${perfume.name} 향이라니 의외인데?? 근데 생각할수록 찰떡이야ㅋㅋ 이 조합이면 진짜 새로운 매력 발견할 듯ㅠㅠ`
   }
 
-  return `당신의 ${traitText} 매력은 ${perfume.name}의 ${charText} 향과 완벽하게 어울려요! ${perfume.mood} 분위기가 당신의 특별한 개성을 한층 더 돋보이게 해줄 거예요.`
+  return `이 ${topTrait} 에너지에서 ${perfume.name} 향이 안 나면 말이 안 돼ㅋㅋ 이 향수 뿌리면 진짜 지나가는 사람마다 뒤돌아볼 거 장담함ㅠㅠ`
 }
