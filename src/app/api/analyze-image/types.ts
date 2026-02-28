@@ -12,11 +12,6 @@ export interface PerfumeRecommendation {
   perfume: Perfume
   matchConfidence: number
   reasoning: string
-  noteComments?: {
-    top: string
-    middle: string
-    base: string
-  }
 }
 
 export interface AnalysisResponseData {

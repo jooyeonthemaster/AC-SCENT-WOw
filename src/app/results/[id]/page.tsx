@@ -14,30 +14,29 @@ const ShareModal = dynamic(
   () => import('./components/ShareModal').then(m => ({ default: m.ShareModal })),
   { ssr: false }
 )
-const PerfumeBottle = dynamic(
-  () => import('@/components/animations/PerfumeBottle').then(m => ({ default: m.PerfumeBottle })),
+const EnvelopeCard = dynamic(
+  () => import('@/components/animations/PerfumeBottle').then(m => ({ default: m.EnvelopeCard })),
   { ssr: false }
 )
 
 import type { PerfumeRecommendation } from '@/app/api/analyze-image/types'
 import type { TraitScores, ScentCategoryScores } from '@/types/analysis'
 import { logger } from '@/lib/utils/logger'
+import { serifFont } from '@/lib/constants/styles'
 
 interface AnalysisData {
   analysisId: string
+  timestamp?: number
   analysis: {
     description: string
     traits: TraitScores
     characteristics: ScentCategoryScores
     mood: string[]
     personality: string
-    fanLetter?: string
   }
   recommendations: PerfumeRecommendation[]
   uploadedImage?: string
 }
-
-const serifFont = { fontFamily: 'Times New Roman, Georgia, serif' }
 
 const cardStyle: React.CSSProperties = {
   backgroundColor: '#FFFFFF',
@@ -53,6 +52,12 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [openedBoxes, setOpenedBoxes] = useState<boolean[]>([false, false, false])
+
+  // Preload card template for PerfumeDetailModal
+  useEffect(() => {
+    const img = new window.Image()
+    img.src = '/images/2_display.webp'
+  }, [])
 
   // Load data
   useEffect(() => {
@@ -128,7 +133,7 @@ export default function ResultsPage() {
     )
   }
 
-  const { analysis, recommendations, uploadedImage } = data
+  const { analysis, recommendations, uploadedImage, timestamp } = data
 
   return (
     <>
@@ -270,11 +275,13 @@ export default function ResultsPage() {
             <div style={{ padding: '0 16px 6px', flex: '1 1 0', minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
               <div className="flex gap-4 justify-center px-2" style={{ marginBottom: '0.4dvh', flex: '0 1 auto', maxHeight: '85%', alignItems: 'stretch' }}>
                 {recommendations.slice(0, 3).map((rec, idx) => (
-                  <PerfumeBottle
+                  <EnvelopeCard
                     key={idx}
                     perfumeName={rec.perfume.name}
                     index={idx}
                     recommendation={rec}
+                    uploadedImage={uploadedImage}
+                    analysisDate={timestamp}
                     onOpen={() => {
                       setOpenedBoxes(prev => {
                         const next = [...prev]

@@ -82,7 +82,7 @@ function validateAnalysisResult(result: any): void {
   }
 
   for (const mp of result.matchingPerfumes) {
-    if (!mp.perfumeId || !mp.matchReason || !mp.noteComments) {
+    if (!mp.perfumeId || !mp.matchReason) {
       logger.warn('⚠️ matchingPerfume missing required fields:', mp)
     }
   }

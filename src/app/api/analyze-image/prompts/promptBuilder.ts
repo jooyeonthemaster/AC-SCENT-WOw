@@ -11,8 +11,8 @@ export function buildAnalysisPrompt(options?: PromptOptions): string {
 
   // 언어 옵션에 따라 추가 지시사항 (현재는 한국어만 지원)
   const languageInstruction = options?.language === 'en'
-    ? '\n\nPlease provide description and personality in English.'
-    : '\n\ndescription과 personality는 한국어로 작성해주세요.'
+    ? '\n\nPlease provide description and personality (image mood) in English.'
+    : '\n\ndescription과 personality(이미지 분위기)는 한국어로 작성해주세요.'
 
   // Chain-of-Thought 활성화 시 사고 과정 강조
   const cotInstruction = options?.enableCoT

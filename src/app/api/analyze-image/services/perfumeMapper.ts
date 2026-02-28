@@ -146,8 +146,8 @@ function generateMatchReasoning(
   const topTrait = traitNamesAdj[traitEntries[0][0]] || '특별한'
 
   if (isSurprise) {
-    return `이 ${topTrait} 분위기에 ${perfume.name} 향이라니 의외인데?? 근데 생각할수록 찰떡이야ㅋㅋ 이 조합이면 진짜 새로운 매력 발견할 듯ㅠㅠ`
+    return `${topTrait} 느낌에 ${perfume.name} 향이라니 ㄹㅇ 의외인데?? 🤔 근데 생각할수록 갓벽 조합이야!! 이거 새로운 매력 발견할 듯 ✨`
   }
 
-  return `이 ${topTrait} 에너지에서 ${perfume.name} 향이 안 나면 말이 안 돼ㅋㅋ 이 향수 뿌리면 진짜 지나가는 사람마다 뒤돌아볼 거 장담함ㅠㅠ`
+  return `${topTrait} 에너지에서 ${perfume.name} 향 안 나면 말이 안 됨 ㄹㅇ 🔥 이 향수 뿌리면 진심 지나가는 사람마다 뒤돌아볼 거 장담함!! 💯`
 }

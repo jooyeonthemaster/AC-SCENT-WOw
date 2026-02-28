@@ -4,8 +4,7 @@ import { X, ArrowLeft, Download, Loader2 } from 'lucide-react'
 import { ShareCardNew } from '../../ShareCardNew'
 import { ShareCardProps } from '../types'
 import { PREVIEW_SCALE } from '../constants'
-
-const serifFont = { fontFamily: 'Times New Roman, Georgia, serif' }
+import { serifFont } from '@/lib/constants/styles'
 
 interface PreviewModalProps extends ShareCardProps {
   isOpen: boolean

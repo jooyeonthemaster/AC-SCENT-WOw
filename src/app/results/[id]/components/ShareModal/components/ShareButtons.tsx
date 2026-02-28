@@ -1,6 +1,5 @@
 import { Link2, Image, Download, Loader2, Check } from 'lucide-react'
-
-const serifFont = { fontFamily: 'Times New Roman, Georgia, serif' }
+import { serifFont } from '@/lib/constants/styles'
 
 interface ShareButtonsProps {
   copied: boolean

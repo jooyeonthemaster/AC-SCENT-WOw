@@ -11,8 +11,7 @@ import { useImageGenerator } from './hooks/useImageGenerator'
 import { useShareActions } from './hooks/useShareActions'
 import { ShareButtons } from './components/ShareButtons'
 import { PreviewModal } from './components/PreviewModal'
-
-const serifFont = { fontFamily: 'Times New Roman, Georgia, serif' }
+import { serifFont } from '@/lib/constants/styles'
 
 export function ShareModal({
   isOpen,

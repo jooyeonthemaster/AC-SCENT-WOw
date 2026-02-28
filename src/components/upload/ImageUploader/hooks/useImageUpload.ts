@@ -5,6 +5,30 @@ import { useRouter } from 'next/navigation'
 import { UPLOAD_CONSTRAINTS, ERROR_MESSAGES } from '../constants'
 import { logger } from '@/lib/utils/logger'
 
+const STORAGE_MAX_DIMENSION = 1200
+
+function compressForStorage(dataUrl: string): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      let { width, height } = img
+      if (width > STORAGE_MAX_DIMENSION || height > STORAGE_MAX_DIMENSION) {
+        const ratio = Math.min(STORAGE_MAX_DIMENSION / width, STORAGE_MAX_DIMENSION / height)
+        width = Math.round(width * ratio)
+        height = Math.round(height * ratio)
+      }
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0, width, height)
+      resolve(canvas.toDataURL('image/jpeg', 0.8))
+    }
+    img.onerror = () => resolve(dataUrl)
+    img.src = dataUrl
+  })
+}
+
 interface UseImageUploadReturn {
   file: File | null
   preview: string | null
@@ -63,7 +87,7 @@ export function useImageUpload(): UseImageUploadReturn {
     }
 
     reader.onerror = (e) => {
-      console.error('FileReader error:', e)
+      logger.error('FileReader error:', e)
       setError(ERROR_MESSAGES.UNKNOWN_ERROR)
     }
 
@@ -83,16 +107,18 @@ export function useImageUpload(): UseImageUploadReturn {
       // Generate a temporary analysis ID
       const analysisId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
-      // Store only the image in sessionStorage (analysis will happen in the loading page)
+      // Compress image to fit sessionStorage quota (~5MB limit)
+      const compressed = await compressForStorage(preview)
+
       sessionStorage.setItem(`analysis-pending-${analysisId}`, JSON.stringify({
-        uploadedImage: preview,
+        uploadedImage: compressed,
         timestamp: Date.now()
       }))
 
       // Navigate to analyzing page immediately (analysis will happen there)
       router.push(`/analyzing/${analysisId}`)
     } catch (err) {
-      console.error('Navigation error:', err)
+      logger.error('Navigation error:', err)
       setError(err instanceof Error ? err.message : ERROR_MESSAGES.UNKNOWN_ERROR)
       setIsUploading(false)
     }

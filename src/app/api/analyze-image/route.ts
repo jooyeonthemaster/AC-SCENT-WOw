@@ -52,7 +52,6 @@ export async function POST(req: NextRequest) {
         perfume: perfume!,
         matchConfidence: Math.round(mp.score * 100),
         reasoning: mp.matchReason,
-        noteComments: mp.noteComments,
       }
     }).filter((rec) => rec.perfume != null)
 
@@ -101,7 +100,6 @@ export async function POST(req: NextRequest) {
           characteristics: analysis.characteristics,
           mood: analysis.mood,
           personality: analysis.personality,
-          fanLetter: analysis.fanLetter,
         },
         recommendations,
       },

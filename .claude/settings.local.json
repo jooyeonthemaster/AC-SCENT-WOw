@@ -41,7 +41,15 @@
       "Bash(cmd //c \"rmdir /S /Q src\\\\components\\\\letter\\\\components\")",
       "Bash(cmd //c \"del src\\\\components\\\\letter\\\\constants.ts\")",
       "Bash(cmd //c \"npm run build 2>&1\")",
-      "Bash(git show:*)"
+      "Bash(git show:*)",
+      "Bash(gh api:*)",
+      "Bash(python3:*)",
+      "Bash(printenv:*)",
+      "Bash(python -c:*)",
+      "Bash(where:*)",
+      "Bash(py:*)",
+      "Bash(curl:*)",
+      "Bash(node analyze_frame.js:*)"
     ]
   }
 }
