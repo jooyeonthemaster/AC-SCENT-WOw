@@ -7,6 +7,19 @@ export interface GeminiAnalysisResult {
   mood: string[]
   personality: string
   fanLetter: string
+  matchingPerfumes: MatchingPerfume[]
+}
+
+export interface MatchingPerfume {
+  perfumeId: string
+  score: number
+  matchReason: string
+  noteComments: {
+    top: string
+    middle: string
+    base: string
+  }
+  isSurprise: boolean
 }
 
 export interface Traits {

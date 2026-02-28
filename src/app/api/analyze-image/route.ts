@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateImageRequest } from './utils/validator'
-import { analyzeImageWithGemini, generateReasoningsWithGemini } from './services/geminiService'
-import { findBestPerfumeMatch } from './services/perfumeMapper'
+import { analyzeImageWithGemini } from './services/geminiService'
+import { getPerfumeById } from './services/perfumeFormatter'
 import { transformError } from './utils/errorHandler'
 import { CACHE_EXPIRY_TIME } from '@/lib/constants/app'
 import type { CachedResult } from './types'
@@ -35,45 +35,45 @@ export async function POST(req: NextRequest) {
 
     logger.log(`🚀 [API ${requestId}] POST /api/analyze-image RECEIVED`)
 
-    // 2. [1차] Analyze image with Gemini AI (주접 스타일 description + fanLetter 포함)
-    logger.log(`🔬 [API ${requestId}] Analyzing image with Gemini...`)
+    // 2. Analyze image with Gemini AI (단일 호출: 분석 + 향수 선택 + reasoning 모두 포함)
+    logger.log(`🔬 [API ${requestId}] Analyzing image with Gemini (with perfume DB)...`)
     const analysis = await analyzeImageWithGemini(body.image)
-    logger.log(`✅ [API ${requestId}] Analysis complete`)
+    logger.log(`✅ [API ${requestId}] Analysis complete with ${analysis.matchingPerfumes?.length || 0} perfume matches`)
 
-    // 3. Find top 3 perfume matches
-    logger.log(`🔍 [API ${requestId}] Finding top 3 perfume matches...`)
-    const matches = findBestPerfumeMatch(analysis)
-    logger.log(`✅ [API ${requestId}] Matches:`, matches.map((m) => m.perfume.name).join(', '))
+    // 3. Resolve perfumeIds to full Perfume objects
+    const recommendations = (analysis.matchingPerfumes || []).map((mp) => {
+      const perfume = getPerfumeById(mp.perfumeId)
 
-    // 4. [2차] Generate AI-powered 주접 reasoning for each perfume
-    logger.log(`✍️ [API ${requestId}] Generating 주접 reasonings with Gemini...`)
-    const aiReasonings = await generateReasoningsWithGemini(
-      analysis,
-      matches.map((m, idx) => ({
-        perfume: m.perfume,
-        isSurprise: idx === 2, // 3번째는 서프라이즈
-      }))
-    )
-    logger.log(`✅ [API ${requestId}] Reasonings generated: ${aiReasonings.length > 0 ? 'AI' : 'fallback'}`)
+      if (!perfume) {
+        logger.warn(`⚠️ [API ${requestId}] Perfume not found: ${mp.perfumeId}`)
+      }
 
-    // 4.1. Convert to PerfumeRecommendation format
-    const recommendations = matches.map((match, idx) => ({
-      perfume: match.perfume,
-      matchConfidence: match.confidence,
-      // AI reasoning 성공 시 사용, 실패 시 fallback
-      reasoning: aiReasonings[idx] || match.reasoning,
-    }))
+      return {
+        perfume: perfume!,
+        matchConfidence: Math.round(mp.score * 100),
+        reasoning: mp.matchReason,
+        noteComments: mp.noteComments,
+      }
+    }).filter((rec) => rec.perfume != null)
 
-    // 4.2. Track recommendation stats
+    // 3.1. Fallback: 향수를 찾지 못한 경우
+    if (recommendations.length === 0) {
+      logger.error(`❌ [API ${requestId}] No valid perfume matches found`)
+      throw new Error('향수 매칭에 실패했습니다')
+    }
+
+    logger.log(`✅ [API ${requestId}] Matches:`, recommendations.map((r) => r.perfume.name).join(', '))
+
+    // 3.2. Track recommendation stats
     recommendations.forEach((rec) => {
       const currentCount = recommendationStats.get(rec.perfume.id) || 0
       recommendationStats.set(rec.perfume.id, currentCount + 1)
     })
 
-    // 5. Generate analysis ID
+    // 4. Generate analysis ID
     const analysisId = crypto.randomUUID()
 
-    // 6. Store result in cache
+    // 5. Store result in cache
     const cachedResult: CachedResult = {
       analysis,
       recommendations,
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     resultsCache.set(analysisId, cachedResult)
 
-    // 7. Schedule cache cleanup after expiry time
+    // 6. Schedule cache cleanup after expiry time
     setTimeout(() => {
       resultsCache.delete(analysisId)
       logger.log(`🗑️ [API] Deleted expired result: ${analysisId}`)
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
 
     logger.log(`✅ [API ${requestId}] Successfully cached result (ID: ${analysisId})`)
 
-    // 8. Return response
+    // 7. Return response
     return NextResponse.json({
       success: true,
       data: {

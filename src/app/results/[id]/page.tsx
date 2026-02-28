@@ -8,10 +8,8 @@ import { Home, Share2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { DynamicBackground } from '@/components/DynamicBackground'
 
-const TraitsChart = dynamic(
-  () => import('@/components/results/TraitsChart').then(m => ({ default: m.TraitsChart })),
-  { ssr: false }
-)
+import { StatBars } from './components/StatBars'
+
 const ShareModal = dynamic(
   () => import('./components/ShareModal').then(m => ({ default: m.ShareModal })),
   { ssr: false }
@@ -20,12 +18,8 @@ const PerfumeBottle = dynamic(
   () => import('@/components/animations/PerfumeBottle').then(m => ({ default: m.PerfumeBottle })),
   { ssr: false }
 )
-const PerfumeDetailPopup = dynamic(
-  () => import('@/components/results/PerfumeDetailPopup').then(m => ({ default: m.PerfumeDetailPopup })),
-  { ssr: false }
-)
+
 import type { PerfumeRecommendation } from '@/app/api/analyze-image/types'
-import type { Perfume } from '@/lib/data/perfumes'
 import type { TraitScores, ScentCategoryScores } from '@/types/analysis'
 import { logger } from '@/lib/utils/logger'
 
@@ -45,26 +39,10 @@ interface AnalysisData {
 
 const serifFont = { fontFamily: 'Times New Roman, Georgia, serif' }
 
-function createAnalysisPerfume(
-  analysis: AnalysisData['analysis']
-): Perfume {
-  return {
-    id: 'analysis',
-    name: '분석 결과',
-    description: analysis.description,
-    mood: analysis.mood.join(', '),
-    personality: analysis.personality,
-    mainScent: { name: '' },
-    subScent1: { name: '' },
-    subScent2: { name: '' },
-    characteristics: analysis.characteristics,
-    category: '',
-    recommendation: '',
-    traits: analysis.traits,
-    keywords: analysis.mood,
-    primaryColor: '#1A1A1A',
-    secondaryColor: '#B00',
-  }
+const cardStyle: React.CSSProperties = {
+  backgroundColor: '#FFFFFF',
+  borderRadius: 16,
+  boxShadow: '0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(187, 0, 0, 0.25)',
 }
 
 export default function ResultsPage() {
@@ -74,12 +52,9 @@ export default function ResultsPage() {
   const [data, setData] = useState<AnalysisData | null>(null)
   const [loading, setLoading] = useState(true)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
-
-  // Perfume bottle interaction state
   const [openedBoxes, setOpenedBoxes] = useState<boolean[]>([false, false, false])
-  const [activePerfumeIndex, setActivePerfumeIndex] = useState(0)
-  const [isPerfumeDetailOpen, setIsPerfumeDetailOpen] = useState(false)
 
+  // Load data
   useEffect(() => {
     const storedData = sessionStorage.getItem(`analysis-${id}`)
     if (storedData) {
@@ -103,7 +78,7 @@ export default function ResultsPage() {
     setLoading(false)
   }, [id])
 
-  // Warn user before leaving
+  // Warn before leaving
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault()
@@ -129,27 +104,19 @@ export default function ResultsPage() {
     }
   }, [])
 
-  // --- Loading state ---
   if (loading) {
     return (
       <div className="flex items-center justify-center h-dvh">
-        <p className="text-sm text-[#999] tracking-wider" style={serifFont}>
-          Loading...
-        </p>
+        <p className="text-sm text-[#999] tracking-wider" style={serifFont}>Loading...</p>
       </div>
     )
   }
 
-  // --- Error state ---
   if (!data || !data.recommendations || data.recommendations.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-dvh px-8 text-center">
-        <h1 className="text-lg text-[#1A1A1A] mb-3" style={serifFont}>
-          결과를 찾을 수 없습니다
-        </h1>
-        <p className="text-xs text-[#888] mb-6 leading-relaxed">
-          분석 결과가 만료되었거나 존재하지 않습니다.
-        </p>
+        <h1 className="text-lg text-[#1A1A1A] mb-3" style={serifFont}>결과를 찾을 수 없습니다</h1>
+        <p className="text-xs text-[#888] mb-6 leading-relaxed">분석 결과가 만료되었거나 존재하지 않습니다.</p>
         <button
           onClick={() => router.push('/')}
           className="min-h-[44px] px-6 py-3 bg-[#1A1A1A] text-white text-sm tracking-wider"
@@ -162,195 +129,196 @@ export default function ResultsPage() {
   }
 
   const { analysis, recommendations, uploadedImage } = data
-  const analysisPerfume = createAnalysisPerfume(analysis)
 
   return (
     <>
       <DynamicBackground showHeroText={false} fixed />
 
-      {/* Content container: full viewport scroll */}
+      {/* Viewport-fit container (no scroll) */}
       <div
         style={{
           position: 'fixed',
-          top: 'calc(env(safe-area-inset-top, 0px) + 56px)',
-          left: 16,
-          right: 16,
+          top: 'calc(env(safe-area-inset-top, 0px) + 75px)',
+          left: 32,
+          right: 32,
           bottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
-          overflowY: 'auto',
-          overflowX: 'hidden',
+          overflow: 'hidden',
           zIndex: 10,
-          scrollbarWidth: 'none',
         }}
       >
-        <div className="max-w-6xl mx-auto">
-          <div className="space-y-0">
+        <div
+          className="max-w-md mx-auto"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            gap: '1.2dvh',
+          }}
+        >
 
-            {/* === Section A: Analyzed Photo === */}
-            {uploadedImage && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="mb-6"
-              >
-                <p className="text-[10px] tracking-[0.3em] uppercase text-[#999] mb-2" style={serifFont}>
-                  Analyzed
-                </p>
-                <div className="relative w-full aspect-[3/4] bg-[#f5f5f5] overflow-hidden">
-                  {/* Red corner brackets */}
-                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#B00] z-[1]" />
-                  <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#B00] z-[1]" />
-                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#B00] z-[1]" />
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#B00] z-[1]" />
-                  <Image
-                    src={uploadedImage}
-                    fill
-                    className="object-cover"
-                    alt="분석한 이미지"
-                    unoptimized
-                    loading="eager"
-                    fetchPriority="high"
-                  />
-                </div>
-              </motion.div>
-            )}
-
-            {/* === Section B: AI Analysis === */}
+          {/* Character Portrait Card — 3:4 ratio, proportional flex */}
+          {uploadedImage && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.5 }}
-              className="pt-6 border-t border-[#EEE]"
+              transition={{ duration: 0.5 }}
+              style={{
+                ...cardStyle,
+                flex: '4 4 0',
+                minHeight: 0,
+                padding: '3%',
+                display: 'flex',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
             >
-              <p className="text-[10px] tracking-[0.3em] uppercase text-[#999] mb-3" style={serifFont}>
-                Analysis
-              </p>
-              <p className="text-sm text-[#1A1A1A] leading-relaxed mb-4">
-                {analysis.description}
-              </p>
-              {analysis.personality && (
-                <div className="border-l-2 border-[#B00] pl-3 mb-4">
-                  <p className="text-xs text-[#555] italic" style={serifFont}>
-                    {analysis.personality}
-                  </p>
-                </div>
-              )}
-              <div className="flex flex-wrap gap-1.5">
-                {analysis.mood.map((keyword, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2.5 py-1 border border-[#DDD] text-[#1A1A1A] text-[11px] tracking-wide"
-                  >
-                    #{keyword}
-                  </span>
-                ))}
+              <div
+                className="relative"
+                style={{
+                  borderRadius: 12,
+                  overflow: 'hidden',
+                  height: '100%',
+                  aspectRatio: '3 / 4',
+                  maxWidth: '100%',
+                }}
+              >
+                <Image
+                  src={uploadedImage}
+                  fill
+                  className="object-cover"
+                  style={{ borderRadius: 12 }}
+                  alt="분석한 이미지"
+                  unoptimized
+                  loading="eager"
+                  fetchPriority="high"
+                />
               </div>
             </motion.div>
+          )}
 
-            {/* === Section C: Fan Letter === */}
-            {analysis.fanLetter && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="pt-6 border-t border-[#EEE]"
-              >
-                <p className="text-[10px] tracking-[0.3em] uppercase text-[#999] mb-3" style={serifFont}>
-                  Fan Letter
-                </p>
-                <div className="bg-[#FAFAFA] p-4 border border-[#EEE]">
-                  <p className="text-sm text-[#333] leading-relaxed italic" style={serifFont}>
-                    &ldquo;{analysis.fanLetter}&rdquo;
-                  </p>
-                </div>
-                <div className="flex justify-center mt-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#B00]" />
-                </div>
-              </motion.div>
-            )}
-
-            {/* === Section D: Traits Chart === */}
+          {/* Personality one-liner Card */}
+          {analysis.personality && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="pt-6 border-t border-[#EEE]"
+              transition={{ delay: 0.3, duration: 0.4 }}
+              style={{
+                ...cardStyle,
+                flex: '1.5 1.5 0',
+                minHeight: 0,
+                padding: '1.2dvh 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
             >
-              <p className="text-[10px] tracking-[0.3em] uppercase text-[#999] mb-3" style={serifFont}>
-                Traits
+              <p className="text-[17px] text-[#555] leading-snug text-center" style={{ fontFamily: 'var(--font-gamja), cursive', wordBreak: 'keep-all' }}>
+                {analysis.personality}
               </p>
-              <TraitsChart perfume={analysisPerfume} />
             </motion.div>
+          )}
 
-            {/* === Section E: Perfume Gift Boxes === */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="pt-6 border-t border-[#EEE]"
+          {/* STATUS Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              ...cardStyle,
+              flex: '2 2 0',
+              minHeight: 0,
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <span
+              className="absolute left-1/2 -translate-x-1/2 text-[20px] tracking-[0.25em] text-[#BB0000] font-bold uppercase"
+              style={{ ...serifFont, top: -7, padding: '0 10px', zIndex: 1 }}
             >
-              <p className="text-[10px] tracking-[0.3em] uppercase text-[#B00] font-semibold mb-1" style={serifFont}>
-                Recommendations
-              </p>
-              <p className="text-xs text-[#555] mb-4">
-                향수를 터치하여 확인하세요
-              </p>
+              Status
+            </span>
+            <div style={{ padding: '4px 16px', width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
+              <StatBars traits={analysis.traits} />
+            </div>
+          </motion.div>
 
-              <div className="flex gap-3 justify-center items-stretch px-2 mb-4">
+          {/* RECOMMENDATIONS Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              ...cardStyle,
+              flex: '4 4 0',
+              minHeight: 0,
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <span
+              className="absolute left-1/2 -translate-x-1/2 text-[20px] tracking-[0.25em] text-[#1A1A1A] font-bold uppercase"
+              style={{ ...serifFont, top: -7, padding: '0 10px', zIndex: 1 }}
+            >
+              Recommendations
+            </span>
+            <p className="text-[20px] tracking-wider text-[#999] text-center mt-5 mb-1" style={serifFont}>
+              편지를 눌러서 답장을 확인해보세요
+            </p>
+            <div style={{ padding: '0 16px 6px', flex: '1 1 0', minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+              <div className="flex gap-4 justify-center px-2" style={{ marginBottom: '0.4dvh', flex: '0 1 auto', maxHeight: '85%', alignItems: 'stretch' }}>
                 {recommendations.slice(0, 3).map((rec, idx) => (
                   <PerfumeBottle
                     key={idx}
                     perfumeName={rec.perfume.name}
                     index={idx}
+                    recommendation={rec}
                     onOpen={() => {
                       setOpenedBoxes(prev => {
                         const next = [...prev]
                         next[idx] = true
                         return next
                       })
-                      setActivePerfumeIndex(idx)
-                      setIsPerfumeDetailOpen(true)
                     }}
                   />
                 ))}
               </div>
-
-              <div className="text-center">
-                <p className="text-[10px] tracking-[0.2em] text-[#AAA]">
-                  {openedBoxes.filter(Boolean).length} / {Math.min(recommendations.length, 3)} REVEALED
-                </p>
-              </div>
-            </motion.div>
-
-            {/* === Section F: Actions === */}
-            <div className="pt-6 border-t border-[#EEE] flex gap-3 pb-8">
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setIsShareModalOpen(true)}
-                className="flex-1 min-h-[48px] px-4 py-3 bg-white border-2 border-[#BB0000] text-[#BB0000] text-sm tracking-wider rounded-xl flex items-center justify-center gap-2 transition-colors active:bg-[#BB0000] active:text-white"
-                style={serifFont}
-              >
-                <Share2 className="w-4 h-4" />
-                <span>SHARE</span>
-              </motion.button>
-              <button
-                onClick={() => {
-                  const confirmLeave = window.confirm(
-                    '결과를 저장하지 않으면 사라집니다. 페이지를 떠나시겠습니까?'
-                  )
-                  if (confirmLeave) {
-                    router.push('/')
-                  }
-                }}
-                className="flex-1 min-h-[48px] px-4 py-3 bg-[#F5F5F5] border border-[#DDD] text-[#555] text-sm tracking-wider rounded-xl flex items-center justify-center gap-2 transition-colors active:bg-[#E5E5E5]"
-                style={serifFont}
-              >
-                <Home className="w-4 h-4" />
-                <span>HOME</span>
-              </button>
+              <p className="text-[10px] tracking-[0.2em] text-[#AAA] text-center">
+                {openedBoxes.filter(Boolean).length} / {Math.min(recommendations.length, 3)} REVEALED
+              </p>
             </div>
+          </motion.div>
 
+          {/* Actions */}
+          <div className="flex gap-3" style={{ flex: '0.7 0.7 0', minHeight: 36 }}>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setIsShareModalOpen(true)}
+              className="flex-1 px-4 text-[#BB0000] text-sm tracking-wider flex items-center justify-center gap-2 transition-colors active:bg-[#BB0000] active:text-white"
+              style={{ ...serifFont, ...cardStyle, border: '2px solid #BB0000', height: '100%' }}
+            >
+              <Share2 className="w-4 h-4" />
+              <span>SHARE</span>
+            </motion.button>
+            <button
+              onClick={() => {
+                const confirmLeave = window.confirm(
+                  '결과를 저장하지 않으면 사라집니다. 페이지를 떠나시겠습니까?'
+                )
+                if (confirmLeave) {
+                  router.push('/')
+                }
+              }}
+              className="flex-1 px-4 text-[#555] text-sm tracking-wider flex items-center justify-center gap-2 transition-colors active:bg-[#E5E5E5]"
+              style={{ ...serifFont, ...cardStyle, height: '100%' }}
+            >
+              <Home className="w-4 h-4" />
+              <span>HOME</span>
+            </button>
           </div>
+
         </div>
       </div>
 
@@ -380,13 +348,6 @@ export default function ResultsPage() {
           personalColor: undefined,
           matchingKeywords: analysis.mood
         }}
-      />
-
-      <PerfumeDetailPopup
-        isOpen={isPerfumeDetailOpen}
-        recommendation={recommendations[activePerfumeIndex] || null}
-        index={activePerfumeIndex}
-        onClose={() => setIsPerfumeDetailOpen(false)}
       />
     </>
   )

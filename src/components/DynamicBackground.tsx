@@ -49,7 +49,6 @@ export function DynamicBackground({ showHeroText = true, fixed = false }: Dynami
                 {/* === Design Layer 1: Background decoration === */}
 
                 {/* Geometric Grid Lines */}
-                <line x1="40" y1="220" x2="1040" y2="220" stroke="#333" strokeWidth="2" opacity="0.1" />
                 <line x1="40" y1="1700" x2="1040" y2="1700" stroke="#333" strokeWidth="2" opacity="0.1" />
 
                 {/* === Design Layer 2: Typography (Background) === */}
@@ -78,7 +77,6 @@ export function DynamicBackground({ showHeroText = true, fixed = false }: Dynami
                 <path d="M -50 480 Q 270 380 540 480 T 1130 480" stroke="#333" strokeWidth="2" fill="none" opacity="0.08" />
 
                 {/* Red Point Accents */}
-                <circle cx="540" cy="180" r="4" fill="#B00" />
                 {showHeroText && <circle cx="540" cy="470" r="3" fill="#B00" />}
 
                 {/* === Scattered Elements (visible when showHeroText is off - results page) === */}

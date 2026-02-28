@@ -1,4 +1,4 @@
-import { POSITIVE_ANALYSIS_SYSTEM_PROMPT } from './systemPrompt'
+import { buildSystemPromptWithPerfumes } from './systemPrompt'
 
 export interface PromptOptions {
   language?: 'ko' | 'en'
@@ -7,7 +7,7 @@ export interface PromptOptions {
 }
 
 export function buildAnalysisPrompt(options?: PromptOptions): string {
-  const basePrompt = POSITIVE_ANALYSIS_SYSTEM_PROMPT
+  const basePrompt = buildSystemPromptWithPerfumes()
 
   // 언어 옵션에 따라 추가 지시사항 (현재는 한국어만 지원)
   const languageInstruction = options?.language === 'en'
