@@ -45,6 +45,13 @@ export const metadata: Metadata = {
     title: "AC'SCENT - AI 향수 추천",
     description: '좋아하는 셀럽의 사진으로 나에게 어울리는 향수를 찾아보세요',
     type: 'website',
+    images: [{ url: '/images/og_logo.jpg' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "AC'SCENT - AI 향수 추천",
+    description: '좋아하는 셀럽의 사진으로 나에게 어울리는 향수를 찾아보세요',
+    images: ['/images/og_logo.jpg'],
   },
 }
 
