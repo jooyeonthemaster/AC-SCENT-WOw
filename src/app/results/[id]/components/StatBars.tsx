@@ -104,17 +104,14 @@ export function StatBars({ traits }: StatBarsProps) {
                   style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
                 />
               </svg>
-              <div className="flex flex-col items-center justify-center z-[1]">
-                <span style={{ fontSize: Math.max(14, circleSize * 0.44) }} className="leading-none">{TRAIT_ICONS[key]}</span>
-                <span className="font-bold leading-none mt-0.5" style={{ color, fontSize: Math.max(12, circleSize * 0.34) }}>
-                  {value}
-                </span>
+              <div className="flex items-center justify-center z-[1]">
+                <span style={{ fontSize: Math.max(16, circleSize * 0.5), color }} className="leading-none">{TRAIT_ICONS[key]}</span>
               </div>
             </div>
 
             <span
               className="font-semibold mt-0.5 text-center leading-tight"
-              style={{ color, fontSize: Math.max(8, circleSize * 0.225) }}
+              style={{ color, fontSize: Math.max(12, circleSize * 0.34) }}
             >
               {TRAIT_LABELS[key]}
             </span>

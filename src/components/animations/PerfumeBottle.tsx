@@ -164,8 +164,8 @@ export function EnvelopeCard({ perfumeName, index, recommendation, onOpen, uploa
 
         {/* Label */}
         <span
-          className={`mt-1 text-[10px] tracking-wider font-semibold ${phase === 'opened' ? '' : 'text-[#999]'}`}
-          style={{ ...serifFont, ...(phase === 'opened' ? { color: accentColor } : {}) }}
+          className={`mt-1 tracking-wider font-semibold ${phase === 'opened' ? '' : 'text-[#999]'}`}
+          style={{ ...serifFont, fontSize: '1.8dvh', ...(phase === 'opened' ? { color: accentColor } : {}) }}
         >
           {phase === 'opened' ? 'TAP TO VIEW' : `NO.${displayNumber}`}
         </span>

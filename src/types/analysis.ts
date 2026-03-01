@@ -153,16 +153,16 @@ export { TRAIT_LABELS, CHARACTERISTIC_LABELS } from '@/lib/constants/labels';
 
 // 트레이트 아이콘 맵
 export const TRAIT_ICONS: Record<keyof TraitScores, string> = {
-  sexy: '💋',
-  cute: '🌸',
-  charisma: '✨',
-  darkness: '🌑',
-  freshness: '🌊',
+  sexy: '🔥',
+  cute: '🎀',
+  charisma: '⚡',
+  darkness: '🌙',
+  freshness: '💧',
   elegance: '🦢',
-  freedom: '🕊️',
+  freedom: '🍃',
   luxury: '💎',
-  purity: '🤍',
-  uniqueness: '🌈'
+  purity: '🕊️',
+  uniqueness: '🦋'
 };
 
 // 카테고리 정보
