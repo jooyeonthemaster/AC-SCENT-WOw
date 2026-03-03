@@ -101,6 +101,7 @@ export function EnvelopeCard({ perfumeName, index, recommendation, hint, onOpen,
             <Image
               src="/images/envelope_closed_new.png"
               fill
+              priority
               quality={80}
               style={{ objectFit: 'contain', filter: saturateFilter }}
               alt={perfumeName}

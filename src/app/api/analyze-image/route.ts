@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateImageRequest } from './utils/validator'
 import { analyzeImageWithGemini } from './services/geminiService'
 import { getPerfumeById } from './services/perfumeFormatter'
+import { selectDiverseRecommendations } from './services/perfumeSelector'
 import { transformError } from './utils/errorHandler'
 import { CACHE_EXPIRY_TIME } from '@/lib/constants/app'
 import type { CachedResult } from './types'
@@ -38,10 +39,14 @@ export async function POST(req: NextRequest) {
     // 2. Analyze image with Gemini AI (단일 호출: 분석 + 향수 선택 + reasoning 모두 포함)
     logger.log(`🔬 [API ${requestId}] Analyzing image with Gemini (with perfume DB)...`)
     const analysis = await analyzeImageWithGemini(body.image)
-    logger.log(`✅ [API ${requestId}] Analysis complete with ${analysis.matchingPerfumes?.length || 0} perfume matches`)
+    logger.log(`✅ [API ${requestId}] Analysis complete with ${analysis.matchingPerfumes?.length || 0} perfume candidates`)
+
+    // 2.5. Apply diversity selection: pick 3 from Gemini's candidates
+    const selectedPerfumes = selectDiverseRecommendations(analysis.matchingPerfumes || [])
+    logger.log(`🎯 [API ${requestId}] Selected: ${selectedPerfumes.map(p => p.perfumeId).join(', ')}`)
 
     // 3. Resolve perfumeIds to full Perfume objects
-    const recommendations = (analysis.matchingPerfumes || []).map((mp) => {
+    const recommendations = selectedPerfumes.map((mp) => {
       const perfume = getPerfumeById(mp.perfumeId)
 
       if (!perfume) {

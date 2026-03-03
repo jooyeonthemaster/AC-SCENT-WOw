@@ -45,12 +45,14 @@ export default function ResultsPage() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const [selectedPerfume, setSelectedPerfume] = useState<Perfume | null>(null)
 
-  // Preload card templates
+  // Preload card templates + envelope
   useEffect(() => {
     const img1 = new window.Image()
     img1.src = '/images/result_template_display.webp'
     const img2 = new window.Image()
     img2.src = '/images/2_display.webp'
+    const img3 = new window.Image()
+    img3.src = '/images/envelope_closed_new.png'
   }, [])
 
   // Load data

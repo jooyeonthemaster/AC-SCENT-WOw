@@ -6,6 +6,7 @@ import { X, Download, Share2, Loader2 } from 'lucide-react'
 import { domToPng } from 'modern-screenshot'
 import { useScrollLock } from '@/app/results/[id]/components/ShareModal/hooks/useScrollLock'
 const cardFont = { fontFamily: '"Poppins", "Noto Sans KR", sans-serif' } as const
+import NextImage from 'next/image'
 import { ScentProfileGrid } from './ScentProfileGrid'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { PerfumeRecommendation } from '@/app/api/analyze-image/types'
@@ -15,9 +16,8 @@ import type { PerfumeRecommendation } from '@/app/api/analyze-image/types'
 const CARD_WIDTH = 320
 const CARD_HEIGHT = 573
 
-// Two-tier template loading: light WebP for display, original JPEG for saving
-const TEMPLATE_DISPLAY = '/images/2_display.webp' // ~21KB
-const TEMPLATE_HIRES = '/images/2.jpeg'           // ~6.2MB (for image capture)
+// Template: original JPEG for capture, Next.js Image optimization for display
+const TEMPLATE_HIRES = '/images/2.jpeg' // original for capture (6.2MB → domToPng)
 
 /*
   Pixel-measured coordinates (2.jpeg @ 3072x5504, scale=9.6):
@@ -75,6 +75,7 @@ function CardContent({
   accentColor,
   dateStr,
   templateSrc,
+  forCapture,
 }: {
   perfume: PerfumeRecommendation['perfume']
   reasoning: string
@@ -82,23 +83,36 @@ function CardContent({
   accentColor: string
   dateStr: string
   templateSrc: string
+  forCapture?: boolean
 }) {
   return (
     <>
       {/* Background template image */}
-      <img
-        src={templateSrc}
-        alt="template"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'fill',
-          zIndex: 0,
-        }}
-      />
+      {forCapture ? (
+        <img
+          src={templateSrc}
+          alt="template"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'fill',
+            zIndex: 0,
+          }}
+        />
+      ) : (
+        <NextImage
+          src={TEMPLATE_HIRES}
+          alt="template"
+          fill
+          quality={80}
+          sizes="320px"
+          style={{ objectFit: 'fill', zIndex: 0 }}
+          priority
+        />
+      )}
 
       {/* User photo (inner frame: x=20, y=79, w=83, h=102.5) */}
       <div
@@ -211,12 +225,16 @@ function CardContent({
       <div
         style={{
           position: 'absolute',
-          top: 322,
+          top: 316,
           left: BOX_LEFT,
           width: BOX_WIDTH,
-          height: STORY_BOX_HEIGHT,
+          height: 85,
           zIndex: 10,
           overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 6px',
+          boxSizing: 'border-box',
         }}
       >
         <p style={{
@@ -235,12 +253,16 @@ function CardContent({
       <div
         style={{
           position: 'absolute',
-          top: 444,
+          top: 438,
           left: BOX_LEFT,
           width: BOX_WIDTH,
-          height: 75,
+          height: 85,
           zIndex: 10,
           overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 6px',
+          boxSizing: 'border-box',
         }}
       >
         <p style={{
@@ -289,19 +311,32 @@ export function PerfumeDetailModal({
   const cachedBlobRef = useRef<Blob | null>(null)
   const [cardScale, setCardScale] = useState(1)
   const [isReady, setIsReady] = useState(false)
+  const [showHiddenCard, setShowHiddenCard] = useState(false)
 
   const { perfume, reasoning } = recommendation
 
   const d = analysisDate ? new Date(analysisDate) : new Date()
   const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 
-  // ── Pre-generate image on mount (before modal is ever opened) ──
+  // ── Defer hidden card rendering to avoid network contention ──
   useEffect(() => {
+    const delay = 3000 + index * 1500 // stagger: 3s, 4.5s, 6s per card
+    const timer = setTimeout(() => setShowHiddenCard(true), delay)
+    return () => clearTimeout(timer)
+  }, [index])
+
+  // ── Pre-generate image after hidden card is rendered ──
+  useEffect(() => {
+    if (!showHiddenCard) return
     let cancelled = false
 
     const generate = async () => {
-      // Wait for DOM to settle
-      await new Promise(r => setTimeout(r, 800))
+      // Wait for hidden card ref to be attached (poll up to 3s)
+      for (let i = 0; i < 30; i++) {
+        if (cancelled) return
+        if (hiddenCardRef.current) break
+        await new Promise(r => setTimeout(r, 100))
+      }
       if (cancelled || !hiddenCardRef.current) return
 
       try {
@@ -347,7 +382,7 @@ export function PerfumeDetailModal({
 
     generate()
     return () => { cancelled = true }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showHiddenCard]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Responsive scale ──
   useEffect(() => {
@@ -414,27 +449,30 @@ export function PerfumeDetailModal({
 
   return createPortal(
     <>
-      {/* Hidden card for image capture — always rendered, uses hi-res JPEG */}
-      <div style={{ position: 'absolute', left: -9999, top: -9999, pointerEvents: 'none' }}>
-        <div
-          ref={hiddenCardRef}
-          style={{
-            width: CARD_WIDTH,
-            height: CARD_HEIGHT,
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <CardContent
-            perfume={perfume}
-            reasoning={reasoning}
-            uploadedImage={uploadedImage}
-            accentColor={accentColor}
-            dateStr={dateStr}
-            templateSrc={TEMPLATE_HIRES}
-          />
+      {/* Hidden card for image capture — deferred to avoid network contention */}
+      {showHiddenCard && (
+        <div style={{ position: 'absolute', left: -9999, top: -9999, pointerEvents: 'none' }}>
+          <div
+            ref={hiddenCardRef}
+            style={{
+              width: CARD_WIDTH,
+              height: CARD_HEIGHT,
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <CardContent
+              perfume={perfume}
+              reasoning={reasoning}
+              uploadedImage={uploadedImage}
+              accentColor={accentColor}
+              dateStr={dateStr}
+              templateSrc={TEMPLATE_HIRES}
+              forCapture
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Modal */}
       <AnimatePresence>
@@ -473,7 +511,7 @@ export function PerfumeDetailModal({
                 marginTop: -(CARD_HEIGHT + 48) / 2,
               }}
             >
-              {/* Live display card (WebP background for fast rendering) */}
+              {/* Live display card (Next.js optimized image for sharp rendering) */}
               <div
                 style={{
                   width: CARD_WIDTH,
@@ -490,7 +528,7 @@ export function PerfumeDetailModal({
                   uploadedImage={uploadedImage}
                   accentColor={accentColor}
                   dateStr={dateStr}
-                  templateSrc={TEMPLATE_DISPLAY}
+                  templateSrc={TEMPLATE_HIRES}
                 />
               </div>
 

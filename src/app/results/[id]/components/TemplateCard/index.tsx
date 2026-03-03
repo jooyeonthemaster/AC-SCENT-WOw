@@ -14,7 +14,18 @@ import { ASSETS, ACTIONS } from './constants'
 
 const EnvelopeCard = dynamic(
   () => import('@/components/animations/PerfumeBottle').then(m => ({ default: m.EnvelopeCard })),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex-1 flex flex-col items-center">
+        <div className="w-full animate-pulse" style={{
+          aspectRatio: '1',
+          borderRadius: 12,
+          backgroundColor: '#EDE9E1',
+        }} />
+      </div>
+    ),
+  }
 )
 
 // Auto font-size (same pattern as PerfumeDetailModal getStoryFontSize)

@@ -210,12 +210,18 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
         {/* ② Scent Information — 노트만 전체 너비 */}
         <div style={{ marginTop: L.scentInfoMt, height: L.scentInfoH }}>
           <div style={{
-            ...boxStyle, borderRadius: 14, padding: '0 16px',
+            ...boxStyle, borderRadius: 14,
             height: L.scentInfoH, boxSizing: 'border-box',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24,
+            position: 'relative',
           }}>
             {notes.map((n, i) => (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div key={i} style={{
+                position: 'absolute',
+                left: `${25 + i * 25}%`,
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+              }}>
                 <span style={{
                   fontSize: 13, fontWeight: 800,
                   color: i === 0 ? '#BB0000' : i === 1 ? '#E8A838' : '#6B7280',
@@ -225,11 +231,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                 <span style={{
                   fontSize: 15, fontWeight: 600, color: '#555',
                   textAlign: 'center', lineHeight: 1.15,
-                  wordBreak: 'keep-all',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical' as const,
-                  overflow: 'hidden',
+                  wordBreak: 'keep-all', whiteSpace: 'nowrap',
                 }}>
                   {n.name}
                 </span>

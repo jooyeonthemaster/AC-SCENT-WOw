@@ -77,8 +77,12 @@ function validateAnalysisResult(result: any): void {
     throw new Error('matchingPerfumes가 응답에 없습니다')
   }
 
-  if (result.matchingPerfumes.length !== 3) {
-    logger.warn(`⚠️ matchingPerfumes count: ${result.matchingPerfumes.length} (expected 3)`)
+  if (result.matchingPerfumes.length < 3) {
+    logger.warn(`⚠️ matchingPerfumes count: ${result.matchingPerfumes.length} (expected 8, minimum 3)`)
+  }
+  if (result.matchingPerfumes.length > 10) {
+    logger.warn(`⚠️ matchingPerfumes count: ${result.matchingPerfumes.length} (expected 8, trimming to 10)`)
+    result.matchingPerfumes = result.matchingPerfumes.slice(0, 10)
   }
 
   for (const mp of result.matchingPerfumes) {
