@@ -10,8 +10,20 @@ interface StatBarsProps {
 }
 
 const SHOW_COUNT = 5
-const TOP_COUNT = 3
 const STROKE_WIDTH = 4
+
+const TRAIT_COLORS: Record<string, string> = {
+  sexy: '#E84057',
+  cute: '#F48FB1',
+  charisma: '#FF8F00',
+  darkness: '#5C6BC0',
+  freshness: '#26A69A',
+  elegance: '#AB47BC',
+  freedom: '#66BB6A',
+  luxury: '#FFC107',
+  purity: '#42A5F5',
+  uniqueness: '#7E57C2',
+}
 
 export function StatBars({ traits }: StatBarsProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -60,10 +72,9 @@ export function StatBars({ traits }: StatBarsProps) {
       }}
     >
       {topTraits.map(([key, value], rank) => {
-        const isTop = rank < TOP_COUNT
         const progress = value / 10
         const dashOffset = circumference * (1 - progress)
-        const color = isTop ? '#BB0000' : '#555'
+        const color = TRAIT_COLORS[key] || '#999'
 
         return (
           <motion.div

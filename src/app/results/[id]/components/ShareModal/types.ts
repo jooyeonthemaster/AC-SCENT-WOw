@@ -10,6 +10,8 @@ export interface ShareModalProps {
   perfumeName: string
   perfumeBrand: string
   analysisData: ShareAnalysisData
+  accentColor?: string
+  timestamp?: number
   shareUrl?: string
 }
 
@@ -21,4 +23,6 @@ export interface ShareCardProps {
   perfumeName: string
   perfumeBrand: string
   analysisData: ShareAnalysisData
+  accentColor?: string
+  timestamp?: number
 }

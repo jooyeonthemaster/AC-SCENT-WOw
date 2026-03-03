@@ -11,10 +11,15 @@ const ShareModal = dynamic(
   { ssr: false }
 )
 
+import { PerfumeSelectModal } from './components/PerfumeSelectModal'
+
 import type { PerfumeRecommendation } from '@/app/api/analyze-image/types'
+import type { Perfume } from '@/lib/data/perfumes'
 import type { TraitScores, ScentCategoryScores } from '@/types/analysis'
 import { logger } from '@/lib/utils/logger'
 import { serifFont } from '@/lib/constants/styles'
+import { PERFUME_STORY_PRESETS } from '@/lib/data/perfumeStoryPresets'
+import { getAccentColor } from '@/lib/utils/envelopeColor'
 
 interface AnalysisData {
   analysisId: string
@@ -36,7 +41,9 @@ export default function ResultsPage() {
   const id = params.id as string
   const [data, setData] = useState<AnalysisData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isPerfumeSelectOpen, setIsPerfumeSelectOpen] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const [selectedPerfume, setSelectedPerfume] = useState<Perfume | null>(null)
 
   // Preload card templates
   useEffect(() => {
@@ -122,14 +129,31 @@ export default function ResultsPage() {
 
   const { analysis, recommendations, uploadedImage, timestamp } = data
 
+  const handlePerfumeSelect = (perfume: Perfume) => {
+    setSelectedPerfume(perfume)
+    setIsPerfumeSelectOpen(false)
+    setIsShareModalOpen(true)
+  }
+
+  // 선택된 향수의 매칭 정보 찾기
+  const selectedRecommendation = selectedPerfume
+    ? recommendations.find(r => r.perfume.id === selectedPerfume.id)
+    : recommendations[0]
+  const selectedConfidence = selectedRecommendation?.matchConfidence ?? 0.8
+  // 향 스토리: 추천 향수 → reasoning, 다른 향수 → 프리셋 멘트
+  const selectedScentStory = selectedRecommendation?.reasoning
+    || (selectedPerfume ? PERFUME_STORY_PRESETS[selectedPerfume.id] : undefined)
+    || recommendations[0]?.reasoning
+    || ''
+
   return (
-    <div className="h-dvh bg-white overflow-hidden">
+    <div className="h-dvh overflow-hidden" style={{ backgroundColor: '#F5F0E8' }}>
       <TemplateCard
         analysis={analysis}
         recommendations={recommendations}
         uploadedImage={uploadedImage}
         timestamp={timestamp}
-        onShareOpen={() => setIsShareModalOpen(true)}
+        onShareOpen={() => setIsPerfumeSelectOpen(true)}
         onHomeClick={() => {
           const confirmLeave = window.confirm(
             '결과를 저장하지 않으면 사라집니다. 페이지를 떠나시겠습니까?'
@@ -141,6 +165,13 @@ export default function ResultsPage() {
       />
 
       {/* === Overlays === */}
+      <PerfumeSelectModal
+        isOpen={isPerfumeSelectOpen}
+        onClose={() => setIsPerfumeSelectOpen(false)}
+        recommendations={recommendations}
+        onSelect={handlePerfumeSelect}
+      />
+
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
@@ -148,23 +179,26 @@ export default function ResultsPage() {
         twitterName={analysis.description}
         userName="사용자"
         userGender="Unisex"
-        perfumeName={recommendations[0]?.perfume.name || "향수"}
-        perfumeBrand={recommendations[0]?.perfume.id || "브랜드"}
+        perfumeName={selectedPerfume?.name || recommendations[0]?.perfume.name || "향수"}
+        perfumeBrand={selectedPerfume?.id || recommendations[0]?.perfume.id || "브랜드"}
+        accentColor={getAccentColor(selectedPerfume?.primaryColor || recommendations[0]?.perfume.primaryColor)}
+        timestamp={timestamp}
         analysisData={{
           traits: analysis.traits,
-          matchingPerfumes: recommendations.map(rec => ({
+          matchingPerfumes: [{
             persona: {
-              id: rec.perfume.id,
-              mainScent: rec.perfume.mainScent,
-              subScent1: rec.perfume.subScent1,
-              subScent2: rec.perfume.subScent2,
-              keywords: rec.perfume.keywords || []
+              id: selectedPerfume?.id || recommendations[0]?.perfume.id,
+              mainScent: selectedPerfume?.mainScent || recommendations[0]?.perfume.mainScent,
+              subScent1: selectedPerfume?.subScent1 || recommendations[0]?.perfume.subScent1,
+              subScent2: selectedPerfume?.subScent2 || recommendations[0]?.perfume.subScent2,
+              keywords: selectedPerfume?.keywords || recommendations[0]?.perfume.keywords || []
             },
-            confidence: rec.matchConfidence
-          })),
+            confidence: selectedConfidence
+          }],
           scentCategories: analysis.characteristics,
           personalColor: undefined,
-          matchingKeywords: analysis.mood
+          matchingKeywords: analysis.mood,
+          personality: selectedScentStory
         }}
       />
     </div>

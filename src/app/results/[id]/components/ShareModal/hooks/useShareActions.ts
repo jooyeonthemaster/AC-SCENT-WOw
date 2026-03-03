@@ -6,7 +6,6 @@ interface UseShareActionsProps {
   shareUrl?: string
   perfumeName: string
   twitterName: string
-  generateImage: (element: HTMLElement | null) => Promise<Blob | null>
 }
 
 /**
@@ -16,9 +15,7 @@ export function useShareActions({
   shareUrl,
   perfumeName,
   twitterName,
-  generateImage,
 }: UseShareActionsProps) {
-  const [isGenerating, setIsGenerating] = useState(false)
   const [copied, setCopied] = useState(false)
 
   // 1. 링크 공유
@@ -33,7 +30,6 @@ export function useShareActions({
           url: fullUrl,
         })
       } else if (navigator.clipboard && navigator.clipboard.writeText) {
-        // clipboard API 사용 가능한 경우
         await navigator.clipboard.writeText(fullUrl)
         setCopied(true)
         setTimeout(() => setCopied(false), COPY_SUCCESS_DURATION)
@@ -68,20 +64,22 @@ export function useShareActions({
     }
   }, [shareUrl, perfumeName, twitterName])
 
-  // 2. 이미지 공유 (인스타 스토리 등)
+  // 2. 이미지 공유 (미리 생성된 Blob 사용)
   const handleImageShare = useCallback(
-    async (cardElement: HTMLElement | null, onFallback: () => void) => {
-      setIsGenerating(true)
+    async (preGeneratedBlob: Blob | null, onFallback: () => void) => {
+      // Blob이 아직 없으면 미리보기 모달로 대체
+      if (!preGeneratedBlob) {
+        onFallback()
+        return
+      }
 
       try {
-        const blob = await generateImage(cardElement)
-        if (!blob) throw new Error('이미지 생성 실패')
-
-        const file = new File([blob], `acscent_${Date.now()}.png`, {
+        const file = new File([preGeneratedBlob], `acscent_${Date.now()}.png`, {
           type: 'image/png',
         })
 
         if (navigator.canShare?.({ files: [file] })) {
+          // 사용자 제스처 컨텍스트 내에서 즉시 호출
           await navigator.share({
             files: [file],
             title: `AC'SCENT IDENTITY`,
@@ -94,18 +92,15 @@ export function useShareActions({
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           logger.error('Image share error:', error)
-          alert('이미지 공유 중 오류가 발생했습니다.')
+          // alert 대신 미리보기 모달로 대체
+          onFallback()
         }
-      } finally {
-        setIsGenerating(false)
       }
     },
-    [twitterName, generateImage]
+    [twitterName]
   )
 
   return {
-    isGenerating,
-    setIsGenerating,
     copied,
     handleLinkShare,
     handleImageShare,

@@ -1,375 +1,456 @@
 "use client"
 
-import { forwardRef, useMemo } from 'react'
-import { ShareAnalysisData, TraitScores, ScentCategoryScores, SEASON_LABELS, TONE_LABELS } from '@/types/analysis'
+import { forwardRef } from 'react'
+import { ShareAnalysisData, TraitScores, TRAIT_ICONS } from '@/types/analysis'
+import type { ScentCategoryScores } from '@/types/analysis'
+import { TRAIT_LABELS } from '@/lib/constants/labels'
 import { SHARE_CARD_DIMENSIONS } from '../ShareModal/constants'
-import { TRAIT_KO_LABELS, SCENT_ORDER } from './constants'
-import { calculateRadarPoints, calculateMarkerPoints } from './utils/radarChart'
-import { formatDescription } from './utils/formatters'
-import { ScentCategoriesSection } from './components/ScentCategoriesSection'
+
+// ── Constants ──
+
+const TRAIT_COLORS: Record<string, string> = {
+  sexy: '#E84057', cute: '#F48FB1', charisma: '#FF8F00',
+  darkness: '#5C6BC0', freshness: '#26A69A', elegance: '#AB47BC',
+  freedom: '#66BB6A', luxury: '#FFC107', purity: '#42A5F5', uniqueness: '#7E57C2',
+}
+
+const SCENT_EMOJI: Record<string, string> = {
+  citrus: '🍋', floral: '🌸', woody: '🌲',
+  musky: '🫧', fruity: '🍑', spicy: '🌶️',
+}
+
+const SCENT_LABEL: Record<string, string> = {
+  citrus: 'Citrus', floral: 'Floral', woody: 'Woody',
+  musky: 'Musky', fruity: 'Fruity', spicy: 'Spicy',
+}
+
+const SCENT_KEYS: (keyof ScentCategoryScores)[] = [
+  'citrus', 'floral', 'woody', 'musky', 'fruity', 'spicy',
+]
+
+// ── Layout (px) — 모든 섹션 고정 크기, 독립 조정 가능 ──
+
+const LAYOUT = {
+  pad: 16,
+  headerH: 40,
+  headerLogoH: 26,
+  scentInfoMt: 20,
+  scentInfoH: 57,       // ② Scent Information 높이 (제목 없음)
+  photoRowMt: 17,
+  photoRowH: 280,        // ③ 사진 + 프로필 영역
+  photoW: 208,           // 사진 너비
+  profileW: 180,         // 오른쪽 프로필 컬럼 너비
+  profileGap: 6,         // Image Profile ↔ Scent Profile 간격
+  imageProfileH: 137,    // ⑥ Image Profile 높이
+  scentProfileH: 137,    // ⑦ Scent Profile 높이
+  imageStoryMt: 16,
+  imageStoryH: 120,      // ④ Image Story 높이
+  scentStoryMt: 16,
+  scentStoryH: 120,      // ⑤ Scent Story 높이
+  footerMt: 8,
+  footerH: 32,
+}
+
+// ── Helpers ──
+
+function fitFontSize(
+  text: string, boxW: number, boxH: number, max: number, min: number,
+): number {
+  if (!text) return max
+  for (let s = max; s >= min; s--) {
+    const cpl = Math.floor(boxW / (s * 0.55))
+    const lines = Math.ceil(text.length / cpl)
+    if (lines * s * 1.5 <= boxH) return s
+  }
+  return min
+}
+
+/** Static SVG circular progress (no framer-motion — for image capture) */
+function Ring({ size, sw, progress, color, emoji, emojiSize }: {
+  size: number; sw: number; progress: number
+  color: string; emoji: string; emojiSize: number
+}) {
+  const r = (size - sw) / 2
+  const circ = 2 * Math.PI * r
+  const offset = circ * (1 - progress)
+  return (
+    <div style={{ width: size, height: size, position: 'relative' }}>
+      <svg width={size} height={size}>
+        <circle cx={size / 2} cy={size / 2} r={r}
+          fill="none" stroke="#F0F0F0" strokeWidth={sw} />
+        <circle cx={size / 2} cy={size / 2} r={r}
+          fill="none" stroke={color} strokeWidth={sw}
+          strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
+          style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }} />
+      </svg>
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: emojiSize,
+      }}>
+        {emoji}
+      </div>
+    </div>
+  )
+}
+
+// ── Styles ──
+
+const boxStyle: React.CSSProperties = {
+  border: '2px solid #333',
+  borderRadius: 16,
+  backgroundColor: '#FFFDF8',
+  boxShadow: '3px 3px 0px #333',
+}
+
+const LABEL_H = 26
+
+const labelStyle: React.CSSProperties = {
+  fontSize: 18,
+  fontWeight: 700,
+  color: '#666',
+  letterSpacing: '0.08em',
+  height: LABEL_H,
+  textAlign: 'center',
+}
+
+// ── Component ──
 
 interface ShareCardProps {
-    userImage?: string
-    twitterName: string
-    userName: string
-    userGender?: string
-    perfumeName?: string
-    perfumeBrand?: string
-    analysisData: ShareAnalysisData
+  userImage?: string
+  twitterName: string
+  userName: string
+  userGender?: string
+  perfumeName?: string
+  perfumeBrand?: string
+  analysisData: ShareAnalysisData
+  accentColor?: string
+  timestamp?: number
 }
 
 export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
-    function ShareCardNew({ userImage, twitterName, userName, perfumeName, perfumeBrand, analysisData }, ref) {
-        const { traits, matchingPerfumes, scentCategories, personalColor } = analysisData
-        const persona = matchingPerfumes?.[0]?.persona
+  function ShareCardNew(
+    { userImage, twitterName, perfumeName, perfumeBrand, analysisData, accentColor = '#BB0000', timestamp },
+    ref,
+  ) {
+    const { traits, matchingPerfumes, scentCategories } = analysisData
+    const persona = matchingPerfumes?.[0]?.persona
+    const personality = analysisData.personality || ''
 
-        const polygonPoints = useMemo(() => calculateRadarPoints(traits, 60, 35), [traits])
-        const markers = useMemo(() => calculateMarkerPoints(traits, 60, 35), [traits])
+    // Top 5 traits sorted by score
+    const topTraits = (Object.entries(traits) as [keyof TraitScores, number][])
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
 
-        // Notes Data
-        const notesData = [
-            { type: 'TOP', name: persona?.mainScent?.name || 'Top Note' },
-            { type: 'MID', name: persona?.subScent1?.name || 'Middle Note' },
-            { type: 'BASE', name: persona?.subScent2?.name || 'Base Note' }
-        ]
+    // Scent categories sorted by score
+    const sortedScents = [...SCENT_KEYS]
+      .sort((a, b) => (scentCategories[b] ?? 0) - (scentCategories[a] ?? 0))
 
-        return (
-            <div
-                ref={ref}
-                style={{
-                    width: SHARE_CARD_DIMENSIONS.width,
-                    height: SHARE_CARD_DIMENSIONS.height,
-                    position: 'relative',
-                    overflow: 'hidden',
-                    fontFamily: 'var(--font-jua), "Jua", sans-serif',
-                    backgroundColor: '#FFF'
-                }}
-            >
-                {/* Background Image */}
-                <img
-                    src="/images/shareback/backimage.png"
-                    alt="background"
-                    style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                        zIndex: 0
-                    }}
-                    crossOrigin="anonymous"
-                />
+    // Notes
+    const notes = [
+      { label: 'Top', name: persona?.mainScent?.name || '-' },
+      { label: 'Mid', name: persona?.subScent1?.name || '-' },
+      { label: 'Base', name: persona?.subScent2?.name || '-' },
+    ]
 
-                {/* Perfume ID */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 166,
-                        left: '67%',
-                        transform: 'translateX(-50%)',
-                        width: 250,
-                        zIndex: 10,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                    }}
-                >
-                    <h2 style={{
-                        fontSize: 15,
-                        fontWeight: 900,
-                        color: '#0f172a',
-                        margin: 0,
-                        lineHeight: 1.1,
-                        letterSpacing: -0.5
-                    }}>
-                        {persona?.id || perfumeBrand || '맞춤 향수'}
-                    </h2>
-                </div>
+    // Date
+    const d = timestamp ? new Date(timestamp) : new Date()
+    const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 
-                {/* 분석 이미지 */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 210,
-                        left: '50%',
-                        transform: 'translateX(-61.5%)',
-                        width: 130,
-                        height: 173,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 10,
-                        overflow: 'hidden',
-                        borderRadius: 4,
-                    }}
-                >
-                    {userImage ? (
-                        <img
-                            src={userImage}
-                            alt="분석 이미지"
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                            }}
-                            crossOrigin="anonymous"
-                        />
-                    ) : (
-                        <div
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                backgroundColor: '#f1f5f9',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#94a3b8',
-                                fontSize: 14,
-                            }}
-                        >
-                            NO IMAGE
-                        </div>
-                    )}
-                </div>
+    // Auto font sizes
+    const descFont = fitFontSize(twitterName, 360, 165, 15, 7)
+    const storyFont = fitFontSize(personality, 360, 130, 15, 7)
 
-                {/* Name */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 385,
-                        left: '50%',
-                        transform: 'translateX(-52%)',
-                        width: 320,
-                        textAlign: 'center',
-                        zIndex: 10,
-                    }}
-                >
-                    <h2 style={{ fontSize: 24, fontWeight: 900, color: '#000', margin: 0 }}>
-                        {userName}
-                    </h2>
-                </div>
+    const W = SHARE_CARD_DIMENSIONS.width   // 430
+    const H = SHARE_CARD_DIMENSIONS.height  // 932
+    const L = LAYOUT
 
-                {/* Description (Jujeop) */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 425,
-                        left: '50%',
-                        transform: 'translateX(-55%)',
-                        width: 290,
-                        height: 75,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        textAlign: 'center',
-                        zIndex: 10,
-                    }}
-                >
-                    <p
-                        style={{
-                            fontSize: 14,
-                            fontWeight: 700,
-                            color: '#451a03',
-                            lineHeight: 1.4,
-                            margin: 0,
-                            wordBreak: 'keep-all',
-                            padding: '8px 16px',
-                            backgroundColor: 'rgba(255, 251, 235, 0.85)',
-                            borderRadius: 8
-                        }}
-                    >
-                        {twitterName || `${userName}님만의 특별한 향기`}
-                    </p>
-                </div>
+    // 내부 박스 높이 (라벨 높이 제외)
+    const scentInfoBoxH = L.scentInfoH - LABEL_H
+    const imageProfileBoxH = L.imageProfileH - LABEL_H
+    const scentProfileBoxH = L.scentProfileH - LABEL_H
+    const imageStoryBoxH = L.imageStoryH - LABEL_H
+    const scentStoryBoxH = L.scentStoryH - LABEL_H
 
-                {/* BOTTOM LEFT: Scent Categories */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 623,
-                        left: 58,
-                        width: 130,
-                        zIndex: 10,
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }}
-                >
-                    <ScentCategoriesSection scentCategories={scentCategories} />
-                </div>
+    return (
+      <div
+        ref={ref}
+        style={{
+          width: W,
+          height: H,
+          position: 'relative',
+          overflow: 'hidden',
+          fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+          backgroundColor: '#F5F0E8',
+          padding: L.pad,
+          boxSizing: 'border-box',
+        }}
+      >
+        {/* ① Header — Logo */}
+        <div style={{
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          height: L.headerH,
+        }}>
+          <img
+            src="/images/logo2.PNG"
+            alt="AC'SCENT"
+            style={{ height: L.headerLogoH, objectFit: 'contain', filter: 'invert(1)' }}
+            crossOrigin="anonymous"
+          />
+        </div>
 
-                {/* BOTTOM LEFT: Notes */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 555,
-                        left: 115,
-                        width: 100,
-                        zIndex: 10,
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }}
-                >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        {notesData.map((note, idx) => (
-                            <div
-                                key={idx}
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'flex-start',
-                                    height: 18,
-                                    justifyContent: 'center',
-                                    transform: idx === 0 ? 'translateY(-7px)' : idx === 1 ? 'translateY(-3px)' : 'translateY(2px)'
-                                }}
-                            >
-                                <span
-                                    style={{
-                                        fontSize: 12,
-                                        fontWeight: 900,
-                                        color: '#334155',
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        maxWidth: '100%'
-                                    }}
-                                >
-                                    {note.name}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* BOTTOM RIGHT: Color Type & Radar Chart */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 550,
-                        right: 40,
-                        width: 155,
-                        zIndex: 10,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 10
-                    }}
-                >
-                    {/* Personal Color Info */}
-                    {personalColor && (
-                        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', marginTop: 5 }}>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: 10, fontWeight: 900, color: '#1e293b', transform: 'translate(29px, -5px)', textAlign: 'left' }}>
-                                    {SEASON_LABELS[personalColor.season]} {TONE_LABELS[personalColor.tone]}
-                                </div>
-                                <div style={{ fontSize: 9, color: '#64748b', marginTop: 3, whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.3, textAlign: 'left', transform: 'translateX(-35px)' }}>
-                                    {formatDescription(personalColor.description)}
-                                </div>
-                            </div>
-
-                            {/* Palette Swatches */}
-                            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', transform: 'translateX(-40px)' }}>
-                                {personalColor.palette.slice(0, 4).map((color, idx) => (
-                                    <div
-                                        key={idx}
-                                        style={{
-                                            width: 20,
-                                            height: 20,
-                                            borderRadius: 6,
-                                            backgroundColor: color,
-                                            border: '1px solid rgba(0,0,0,0.1)',
-                                            boxShadow: '1px 1px 0px rgba(0,0,0,0.2)'
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Radar Chart */}
-                    <div
-                        style={{
-                            width: 130,
-                            height: 130,
-                            position: 'relative',
-                            transform: 'translate(-40px, -20px)',
-                            marginTop: 10
-                        }}
-                    >
-                        <svg width="130" height="130" viewBox="0 0 120 120">
-                            <defs>
-                                <linearGradient id="shareChartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stopColor="#F472B6" />
-                                    <stop offset="50%" stopColor="#FACC15" />
-                                    <stop offset="100%" stopColor="#60A5FA" />
-                                </linearGradient>
-                            </defs>
-
-                            {/* Grid Circles */}
-                            {[7, 14, 21, 28, 35].map(r => (
-                                <circle key={r} cx="60" cy="60" r={r} fill="none" stroke="#94a3b8" strokeWidth="0.5" strokeOpacity="0.4" />
-                            ))}
-                            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => {
-                                const angle = -Math.PI / 2 + i * (Math.PI * 2) / 10
-                                const x2 = 60 + 35 * Math.cos(angle)
-                                const y2 = 60 + 35 * Math.sin(angle)
-                                return <line key={i} x1="60" y1="60" x2={x2} y2={y2} stroke="#94a3b8" strokeWidth="0.5" strokeOpacity="0.4" />
-                            })}
-
-                            {/* Data Polygon */}
-                            <polygon
-                                points={polygonPoints}
-                                fill="rgba(236, 72, 153, 0.25)"
-                                stroke="url(#shareChartGradient)"
-                                strokeWidth="1.5"
-                            />
-
-                            {/* Markers */}
-                            {markers.map((pt, i) => (
-                                <circle key={i} cx={pt.x} cy={pt.y} r="2" fill="url(#shareChartGradient)" stroke="#fff" strokeWidth="1" />
-                            ))}
-
-                            {/* Labels */}
-                            {TRAIT_KO_LABELS.map((label, i) => {
-                                const angle = -Math.PI / 2 + i * (Math.PI * 2) / 10
-                                const labelRadius = 45
-                                const x = 60 + labelRadius * Math.cos(angle)
-                                const y = 60 + labelRadius * Math.sin(angle)
-                                return (
-                                    <text
-                                        key={i}
-                                        x={x}
-                                        y={y}
-                                        dominantBaseline="middle"
-                                        textAnchor="middle"
-                                        fontSize="6"
-                                        fontWeight="700"
-                                        fill="#64748b"
-                                        style={{ fontFamily: 'var(--font-jua), "Jua", sans-serif' }}
-                                    >
-                                        {label}
-                                    </text>
-                                )
-                            })}
-                        </svg>
-                    </div>
-
-                    {/* Keywords */}
-                    {(analysisData.matchingKeywords || persona?.keywords || []).slice(0, 3).map((keyword, idx) => (
-                        <span key={idx} style={{
-                            position: 'absolute',
-                            fontSize: '8px',
-                            fontWeight: 'bold',
-                            color: '#334155',
-                            whiteSpace: 'nowrap',
-                            top: 192,
-                            left: idx === 0 ? -9 : idx === 1 ? 25 : 60
-                        }}>
-                            {keyword}
-                        </span>
-                    ))}
-                </div>
+        {/* ② Scent Information (제목 없음) */}
+        <div style={{ marginTop: L.scentInfoMt, height: L.scentInfoH }}>
+          <div style={{
+            ...boxStyle, borderRadius: 14, padding: 0,
+            height: L.scentInfoH, boxSizing: 'border-box',
+            display: 'flex', alignItems: 'center',
+          }}>
+            {/* 향수 이름 — 사진 컨테이너 너비 기준 중앙 */}
+            <div style={{
+              width: L.photoW, display: 'flex', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <span style={{ fontSize: 17.5, fontWeight: 800, color: '#333', whiteSpace: 'nowrap' }}>
+                {perfumeBrand || persona?.id || "AC'SCENT 00"}
+              </span>
             </div>
-        )
-    }
+            {/* 노트 — 나머지 공간 중앙 */}
+            <div style={{
+              flex: 1, display: 'flex', justifyContent: 'center', gap: 12,
+            }}>
+              {notes.map((n, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <span style={{
+                    fontSize: 13, fontWeight: 800,
+                    color: i === 0 ? '#BB0000' : i === 1 ? '#E8A838' : '#6B7280',
+                  }}>
+                    {n.label}
+                  </span>
+                  <span style={{
+                    fontSize: 15, fontWeight: 600, color: '#555',
+                    textAlign: 'center', lineHeight: 1.15,
+                    wordBreak: 'keep-all',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical' as const,
+                    overflow: 'hidden',
+                  }}>
+                    {n.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ③ Photo + (Image Profile + Scent Profile) */}
+        <div style={{ display: 'flex', gap: 10, marginTop: L.photoRowMt, height: L.photoRowH }}>
+
+          {/* Photo (polaroid frame) */}
+          <div style={{
+            ...boxStyle,
+            width: L.photoW,
+            height: L.photoRowH,
+            padding: '6px 8px 8px 6px',
+            boxSizing: 'border-box',
+          }}>
+            <div style={{
+              width: L.photoW - 17, height: L.photoRowH - 17,
+              borderRadius: 10, overflow: 'hidden', backgroundColor: '#f0f0f0',
+            }}>
+              {userImage ? (
+                <img
+                  src={userImage}
+                  alt="user"
+                  style={{
+                    width: '100%', height: '100%',
+                    objectFit: 'cover', objectPosition: 'center top',
+                    display: 'block',
+                  }}
+                  crossOrigin="anonymous"
+                />
+              ) : (
+                <div style={{
+                  width: '100%', height: '100%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: 12, color: '#bbb' }}>PHOTO</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Image Profile + Scent Profile */}
+          <div style={{ width: L.profileW }}>
+
+            {/* Image Profile */}
+            <div style={{ height: L.imageProfileH }}>
+              <div style={labelStyle}>IMAGE PROFILE</div>
+              <div style={{
+                ...boxStyle, borderRadius: 12, padding: '6px 4px',
+                height: imageProfileBoxH, boxSizing: 'border-box',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {topTraits.slice(0, 3).map(([key, val]) => (
+                    <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <Ring
+                        size={38} sw={3.75} progress={val / 10}
+                        color={TRAIT_COLORS[key] || '#999'}
+                        emoji={TRAIT_ICONS[key as keyof TraitScores]}
+                        emojiSize={17}
+                      />
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, marginTop: 1,
+                        color: TRAIT_COLORS[key], whiteSpace: 'nowrap',
+                      }}>
+                        {TRAIT_LABELS[key as keyof TraitScores]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {topTraits.slice(3, 5).map(([key, val]) => (
+                    <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <Ring
+                        size={32} sw={3} progress={val / 10}
+                        color={TRAIT_COLORS[key] || '#999'}
+                        emoji={TRAIT_ICONS[key as keyof TraitScores]}
+                        emojiSize={15}
+                      />
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, marginTop: 1,
+                        color: TRAIT_COLORS[key], whiteSpace: 'nowrap',
+                      }}>
+                        {TRAIT_LABELS[key as keyof TraitScores]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Scent Profile */}
+            <div style={{ height: L.scentProfileH, marginTop: L.profileGap }}>
+              <div style={labelStyle}>SCENT PROFILE</div>
+              <div style={{
+                ...boxStyle, borderRadius: 12, padding: '6px 4px',
+                height: scentProfileBoxH, boxSizing: 'border-box',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {sortedScents.slice(0, 3).map((key) => (
+                    <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <Ring
+                        size={38} sw={3.75}
+                        progress={(scentCategories[key] ?? 0) / 10}
+                        color={accentColor}
+                        emoji={SCENT_EMOJI[key] || '?'}
+                        emojiSize={17}
+                      />
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, marginTop: 1,
+                        color: '#555', whiteSpace: 'nowrap',
+                      }}>
+                        {SCENT_LABEL[key]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {sortedScents.slice(3, 6).map((key) => (
+                    <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <Ring
+                        size={32} sw={3}
+                        progress={(scentCategories[key] ?? 0) / 10}
+                        color={accentColor}
+                        emoji={SCENT_EMOJI[key] || '?'}
+                        emojiSize={15}
+                      />
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, marginTop: 1,
+                        color: '#555', whiteSpace: 'nowrap',
+                      }}>
+                        {SCENT_LABEL[key]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ④ Image Story */}
+        <div style={{ marginTop: L.imageStoryMt, height: L.imageStoryH }}>
+          <div style={labelStyle}>IMAGE STORY</div>
+          <div style={{
+            ...boxStyle, padding: '12px 16px',
+            height: imageStoryBoxH, boxSizing: 'border-box',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden',
+          }}>
+            <p style={{
+              fontSize: descFont, lineHeight: 1.5,
+              color: '#333', margin: 0, textAlign: 'center', wordBreak: 'keep-all',
+            }}>
+              {twitterName}
+            </p>
+          </div>
+        </div>
+
+        {/* ⑤ Scent Story */}
+        <div style={{ marginTop: L.scentStoryMt, height: L.scentStoryH }}>
+          <div style={labelStyle}>SCENT STORY</div>
+          <div style={{
+            ...boxStyle, padding: '12px 16px',
+            height: scentStoryBoxH, boxSizing: 'border-box',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden',
+          }}>
+            <p style={{
+              fontSize: storyFont, lineHeight: 1.5,
+              color: '#333', margin: 0, textAlign: 'center', wordBreak: 'keep-all',
+            }}>
+              {personality || '당신만의 특별한 향기 이야기'}
+            </p>
+          </div>
+        </div>
+
+        {/* ⑥ Footer */}
+        <div style={{
+          position: 'absolute',
+          bottom: L.pad,
+          left: L.pad,
+          right: L.pad,
+          height: L.footerH,
+          display: 'flex', alignItems: 'center',
+        }}>
+          {/* 로고 — 정중앙 */}
+          <div style={{
+            position: 'absolute', left: 0, right: 0,
+            display: 'flex', justifyContent: 'center',
+          }}>
+            <img
+              src="/images/template/footer.png"
+              alt="AC'SCENT WOW"
+              style={{ height: 14, objectFit: 'contain', opacity: 0.6 }}
+              crossOrigin="anonymous"
+            />
+          </div>
+          {/* 날짜 — 우측 정렬 */}
+          <div style={{
+            position: 'absolute',
+            right: 0,
+          }}>
+            <span style={{ fontSize: 14, color: '#666', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+              Date : {dateStr}
+            </span>
+          </div>
+        </div>
+      </div>
+    )
+  },
 )

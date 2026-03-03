@@ -5,7 +5,7 @@
  */
 export const SHARE_CARD_DIMENSIONS = {
   width: 430,
-  height: 932,
+  height: 764,
   scale: 2,
 } as const
 

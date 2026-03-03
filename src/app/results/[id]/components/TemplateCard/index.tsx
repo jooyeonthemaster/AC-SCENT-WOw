@@ -35,27 +35,76 @@ function fitFontSize(
   return minFont
 }
 
-// 빈도 높은 mood 키워드 → 이모지 매핑
-const MOOD_EMOJI: Record<string, string> = {
-  시크: '🖤', 쿨: '🧊', 청량: '💎', 따뜻: '🔥', 몽환: '🌙',
-  우아: '🦢', 신비: '✨', 화사: '🌸', 세련: '💫', 감성: '🎭',
-  로맨틱: '💕', 포근: '☁️', 순수: '🤍', 열정: '❤️‍🔥', 여유: '🍃',
-  다크: '🖤', 도시: '🏙️', 빈티지: '📷', 밝은: '☀️', 자유: '🕊️',
-  카리스마: '⚡', 섹시: '💋', 귀여운: '🎀', 상큼: '🍊', 깔끔: '🫧',
-  고급: '👑', 편안: '🛋️', 차분: '🌊', 활발: '🎉', 부드러운: '🧸',
+
+// mainScent 이름 → 이모지 + 짧은 힌트
+const SCENT_HINTS: Record<string, string> = {
+  블랙베리: '🫐 달콤~', 만다린: '🍊 상큼!', 스트로베리: '🍓 달달♡', 베르가못: '🍋 싱그러운~',
+  오렌지: '🍊 톡 쏘는!', 캐럿: '🥕 풋풋한~', 로즈: '🌹 우아하게~', 튜베로즈: '🤍 황홀한~',
+  블라썸: '🌼 화사한~', 튤립: '🌷 사랑스러운♡', 라임: '💚 청량!', 은방울꽃: '🔔 맑은~',
+  유자: '🍋 새콤달콤!', 민트: '🧊 시원~', 페티그레인: '🍃 깔끔한~', 샌달우드: '🪵 포근한~',
+  레몬: '🍋 톡톡!', 핑크페퍼: '🌶️ 스파이시~', 바다: '🌊 시원한~', 타임: '🌿 허브향~',
+  머스크: '☁️ 부드러운~', 화이트로즈: '🤍 순수한♡', 스웨이드: '🧸 따뜻한~', 라벤더: '💜 편안한~',
+  사이프러스: '🌲 깊은~', 스모키: '🖤 묵직한~', 레더: '🖤 시크!', 바이올렛: '💜 몽환적~',
+  무화과: '🍈 달콤한~', 페퍼: '🌶️ 스파이시!',
 }
 
-function getMoodEmoji(keyword: string): string {
-  for (const [key, emoji] of Object.entries(MOOD_EMOJI)) {
-    if (keyword.includes(key)) return emoji
+function getScentHint(mainScentName: string): string {
+  for (const [key, hint] of Object.entries(SCENT_HINTS)) {
+    if (mainScentName.includes(key)) return hint
   }
-  return ''
+  return '어떤 향?'
 }
 
 const boxStyle: React.CSSProperties = {
-  border: '1px solid #333',
-  borderRadius: 4,
-  backgroundColor: '#fff',
+  border: '2px solid #333',
+  borderRadius: 16,
+  backgroundColor: '#FFFDF8',
+  boxShadow: '3px 3px 0px #333',
+}
+
+// 키워드 → 배경색 매핑
+const MOOD_COLORS: Record<string, string> = {
+  // 어두운/강렬한 계열
+  시크: '#2D2D2D', 다크: '#37474F', 카리스마: '#4A148C', 열정: '#FFCDD2',
+  섹시: '#E91E63', 레더: '#3E2723', 스모키: '#455A64',
+  // 핑크/로맨틱 계열
+  로맨틱: '#F8BBD0', 귀여운: '#FCE4EC', 부드러운: '#FDE7F0', 사랑: '#F48FB1',
+  달콤: '#F8BBD0', 러블리: '#F48FB1',
+  // 보라/몽환 계열
+  몽환: '#E1BEE7', 우아: '#F3E5F5', 신비: '#D1C4E9', 바이올렛: '#CE93D8',
+  // 파랑/청량 계열
+  쿨: '#B3E5FC', 청량: '#81D4FA', 깔끔: '#E0F7FA', 차분: '#B2DFDB',
+  시원: '#80DEEA', 맑은: '#B3E5FC',
+  // 초록/자연 계열
+  여유: '#C8E6C9', 자유: '#A5D6A7', 편안: '#C5E1A5', 자연: '#AED581',
+  허브: '#C5E1A5', 풋풋: '#DCEDC8', 싱그러운: '#C8E6C9',
+  // 노랑/따뜻한 계열
+  따뜻: '#FFCCBC', 포근: '#FFF9C4', 밝은: '#FFF176', 활발: '#FFE082',
+  화사: '#FFE0B2', 상큼: '#FFCC80', 햇살: '#FFF176', 에너지: '#FFD54F',
+  // 베이지/세련 계열
+  세련: '#CFD8DC', 감성: '#D7CCC8', 빈티지: '#EFEBE9', 도시: '#ECEFF1',
+  고급: '#FFF8E1', 클래식: '#D7CCC8', 모던: '#CFD8DC',
+  // 순수/맑은 계열
+  순수: '#E8EAF6', 투명: '#E3F2FD', 깨끗: '#E0F7FA', 가벼운: '#F3E5F5',
+  // 오렌지/과일 계열
+  톡톡: '#FFAB91', 발랄: '#FFAB91', 비타민: '#FFB74D',
+  // 갈색/나무 계열
+  우디: '#BCAAA4', 나무: '#A1887F', 포레스트: '#81C784',
+}
+
+function getMoodColor(keyword: string): string {
+  for (const [key, color] of Object.entries(MOOD_COLORS)) {
+    if (keyword.includes(key)) return color
+  }
+  return '#F5F0E8'
+}
+
+function getMoodTextColor(keyword: string): string {
+  const darkKeywords = ['시크', '다크', '카리스마', '섹시', '레더', '스모키']
+  for (const k of darkKeywords) {
+    if (keyword.includes(k)) return '#fff'
+  }
+  return '#333'
 }
 
 interface TemplateCardProps {
@@ -112,7 +161,7 @@ export function TemplateCard({
       style={{
         width: '100%',
         height: '100dvh',
-        backgroundColor: '#fff',
+        backgroundColor: '#F5F0E8',
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',
@@ -128,9 +177,9 @@ export function TemplateCard({
         padding: '2dvh 16px 3.5dvh',
       }}>
         <img
-          src={ASSETS.logo}
-          alt="Ac'scent"
-          style={{ height: '8dvh', objectFit: 'contain' }}
+          src="/images/logo2.PNG"
+          alt="AC'SCENT"
+          style={{ height: '4dvh', objectFit: 'contain', filter: 'invert(1)' }}
         />
       </div>
 
@@ -150,9 +199,10 @@ export function TemplateCard({
             flex: '55 0 0',
             minWidth: 0,
             border: '2px solid #333',
-            borderRadius: 4,
+            borderRadius: 16,
             padding: 6,
-            backgroundColor: '#fafafa',
+            backgroundColor: '#FFFDF8',
+            boxShadow: '3px 3px 0px #333',
             display: 'flex',
             flexDirection: 'column',
           }}
@@ -162,8 +212,7 @@ export function TemplateCard({
             style={{
               width: '100%',
               aspectRatio: '3/4',
-              border: '1px solid #333',
-              borderRadius: 2,
+              borderRadius: 10,
               overflow: 'hidden',
               backgroundColor: '#f0f0f0',
             }}
@@ -194,13 +243,12 @@ export function TemplateCard({
           </div>
           {/* Polaroid bottom strip — 플로팅 해시태그 */}
           <div style={{
-            height: '3dvh',
-            flexShrink: 0,
+            flex: 1,
+            minHeight: 0,
             display: 'flex',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             justifyContent: 'center',
             gap: 6,
-            paddingTop: '1.2dvh',
             position: 'relative',
             zIndex: 10,
           }}>
@@ -212,18 +260,20 @@ export function TemplateCard({
                   key={i}
                   style={{
                     fontSize: '1.4dvh',
-                    color: '#333',
+                    color: getMoodTextColor(keyword),
                     fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
-                    fontWeight: 500,
+                    fontWeight: 600,
                     letterSpacing: '0.02em',
                     whiteSpace: 'nowrap',
-                    border: '1px solid #BB0000',
+                    backgroundColor: getMoodColor(keyword),
+                    border: '1.5px solid #333',
                     borderRadius: 999,
-                    padding: '0.25dvh 0.8dvh',
+                    padding: '0.3dvh 0.9dvh',
+                    boxShadow: '1.5px 1.5px 0px #333',
                     transform: `rotate(${rotations[i]}deg) translateY(${offsets[i]}px)`,
                   }}
                 >
-                  {getMoodEmoji(keyword) ? `${getMoodEmoji(keyword)} #` : '#'}{keyword}
+                  #{keyword}
                 </span>
               )
             })}
@@ -318,7 +368,7 @@ export function TemplateCard({
           }}
         >
           <p style={{
-            fontSize: '1.3dvh',
+            fontSize: '1.95dvh',
             color: '#333',
             textAlign: 'center',
             margin: '0 0 0.5dvh',
@@ -344,6 +394,7 @@ export function TemplateCard({
                 perfumeName={rec.perfume.name}
                 index={idx}
                 recommendation={rec}
+                hint={getScentHint(rec.perfume.mainScent?.name || '')}
                 uploadedImage={uploadedImage}
                 analysisDate={timestamp}
                 onOpen={() => {
@@ -356,19 +407,6 @@ export function TemplateCard({
               />
             ))}
           </div>
-          <p
-            style={{
-              fontSize: '1.9dvh',
-              letterSpacing: '0.15em',
-              color: '#AAA',
-              textAlign: 'center',
-              margin: '4px 0 0',
-              flexShrink: 0,
-              ...serifFont,
-            }}
-          >
-            {openedBoxes.filter(Boolean).length} / {Math.min(recommendations.length, 3)} REVEALED
-          </p>
         </div>
       </div>
 
@@ -392,11 +430,12 @@ export function TemplateCard({
             padding: '0 20px',
             height: '4.5dvh',
             borderRadius: 20,
-            backgroundColor: '#fff',
-            border: '2px solid #BB0000',
-            color: '#BB0000',
+            backgroundColor: '#BB0000',
+            border: '2px solid #333',
+            color: '#fff',
             fontSize: 12,
             cursor: 'pointer',
+            boxShadow: '3px 3px 0px #333',
             ...serifFont,
           }}
         >
@@ -412,11 +451,12 @@ export function TemplateCard({
             padding: '0 20px',
             height: '4.5dvh',
             borderRadius: 20,
-            backgroundColor: '#fff',
-            border: '1px solid #ccc',
-            color: '#555',
+            backgroundColor: '#FFFDF8',
+            border: '2px solid #333',
+            color: '#333',
             fontSize: 12,
             cursor: 'pointer',
+            boxShadow: '3px 3px 0px #333',
             ...serifFont,
           }}
         >

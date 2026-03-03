@@ -132,6 +132,7 @@ export interface ShareAnalysisData {
   }[];
   personalColor?: PersonalColor;
   matchingKeywords?: string[];
+  personality?: string;
 }
 
 // 사용자 입력 폼 데이터

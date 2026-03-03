@@ -1,5 +1,4 @@
 import { Link2, Image, Download, Loader2, Check } from 'lucide-react'
-import { serifFont } from '@/lib/constants/styles'
 
 interface ShareButtonsProps {
   copied: boolean
@@ -7,6 +6,32 @@ interface ShareButtonsProps {
   onLinkShare: () => void
   onImageShare: () => void
   onPreview: () => void
+}
+
+const btnBase: React.CSSProperties = {
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 14,
+  padding: '14px 16px',
+  borderRadius: 14,
+  backgroundColor: '#FFFDF8',
+  border: '2px solid #333',
+  boxShadow: '3px 3px 0px #333',
+  cursor: 'pointer',
+  fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+  transition: 'transform 0.1s',
+}
+
+const iconBox: React.CSSProperties = {
+  width: 40,
+  height: 40,
+  borderRadius: 10,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1.5px solid #333',
+  flexShrink: 0,
 }
 
 export function ShareButtons({
@@ -17,25 +42,30 @@ export function ShareButtons({
   onPreview,
 }: ShareButtonsProps) {
   return (
-    <div className="space-y-2">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* 링크 공유 */}
       <button
         onClick={onLinkShare}
         disabled={isGenerating}
-        className="w-full py-3.5 px-4 border border-[#E5E5E5] flex items-center gap-3 transition-colors duration-150 active:bg-[#F5F5F5] disabled:opacity-50"
+        style={{
+          ...btnBase,
+          opacity: isGenerating ? 0.5 : 1,
+        }}
       >
-        <span className="w-8 h-8 flex items-center justify-center">
+        <span style={{ ...iconBox, backgroundColor: copied ? '#BB0000' : '#E8F5E9' }}>
           {copied ? (
-            <Check size={16} className="text-[#BB0000]" />
+            <Check size={18} color="#fff" />
           ) : (
-            <Link2 size={16} className="text-[#1A1A1A]" />
+            <Link2 size={18} color="#333" />
           )}
         </span>
-        <div className="text-left">
-          <p className="text-sm font-semibold tracking-wider text-[#1A1A1A]" style={serifFont}>
-            {copied ? 'COPIED!' : 'LINK SHARE'}
+        <div style={{ textAlign: 'left' }}>
+          <p style={{ fontSize: 18, fontWeight: 700, color: '#333', margin: 0 }}>
+            {copied ? '복사 완료!' : '링크 공유'}
           </p>
-          <p className="text-[10px] tracking-[0.1em] text-[#999]">카카오톡, 메신저로 공유하기</p>
+          <p style={{ fontSize: 14, color: '#333', margin: 0, marginTop: 2 }}>
+            카카오톡, 메신저로 공유하기
+          </p>
         </div>
       </button>
 
@@ -43,20 +73,25 @@ export function ShareButtons({
       <button
         onClick={onImageShare}
         disabled={isGenerating}
-        className="w-full py-3.5 px-4 border border-[#E5E5E5] flex items-center gap-3 transition-colors duration-150 active:bg-[#F5F5F5] disabled:opacity-50"
+        style={{
+          ...btnBase,
+          opacity: isGenerating ? 0.5 : 1,
+        }}
       >
-        <span className="w-8 h-8 flex items-center justify-center">
+        <span style={{ ...iconBox, backgroundColor: '#E3F2FD' }}>
           {isGenerating ? (
-            <Loader2 size={16} className="text-[#999] animate-spin" />
+            <Loader2 size={18} color="#999" className="animate-spin" />
           ) : (
-            <Image size={16} className="text-[#1A1A1A]" />
+            <Image size={18} color="#333" />
           )}
         </span>
-        <div className="text-left">
-          <p className="text-sm font-semibold tracking-wider text-[#1A1A1A]" style={serifFont}>
-            IMAGE SHARE
+        <div style={{ textAlign: 'left' }}>
+          <p style={{ fontSize: 18, fontWeight: 700, color: '#333', margin: 0 }}>
+            이미지 공유
           </p>
-          <p className="text-[10px] tracking-[0.1em] text-[#999]">인스타 스토리, SNS에 올리기</p>
+          <p style={{ fontSize: 14, color: '#333', margin: 0, marginTop: 2 }}>
+            인스타 스토리, SNS에 올리기
+          </p>
         </div>
       </button>
 
@@ -64,20 +99,25 @@ export function ShareButtons({
       <button
         onClick={onPreview}
         disabled={isGenerating}
-        className="w-full py-3.5 px-4 border border-[#E5E5E5] flex items-center gap-3 transition-colors duration-150 active:bg-[#F5F5F5] disabled:opacity-50"
+        style={{
+          ...btnBase,
+          opacity: isGenerating ? 0.5 : 1,
+        }}
       >
-        <span className="w-8 h-8 flex items-center justify-center">
+        <span style={{ ...iconBox, backgroundColor: '#FFF3E0' }}>
           {isGenerating ? (
-            <Loader2 size={16} className="text-[#999] animate-spin" />
+            <Loader2 size={18} color="#999" className="animate-spin" />
           ) : (
-            <Download size={16} className="text-[#1A1A1A]" />
+            <Download size={18} color="#333" />
           )}
         </span>
-        <div className="text-left">
-          <p className="text-sm font-semibold tracking-wider text-[#1A1A1A]" style={serifFont}>
-            SAVE IMAGE
+        <div style={{ textAlign: 'left' }}>
+          <p style={{ fontSize: 18, fontWeight: 700, color: '#333', margin: 0 }}>
+            이미지 저장
           </p>
-          <p className="text-[10px] tracking-[0.1em] text-[#999]">갤러리에 저장하기</p>
+          <p style={{ fontSize: 14, color: '#333', margin: 0, marginTop: 2 }}>
+            갤러리에 저장하기
+          </p>
         </div>
       </button>
     </div>

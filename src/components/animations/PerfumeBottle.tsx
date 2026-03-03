@@ -12,6 +12,7 @@ interface EnvelopeCardProps {
   perfumeName: string
   index: number
   recommendation: PerfumeRecommendation
+  hint?: string
   onOpen: () => void
   uploadedImage?: string
   analysisDate?: number
@@ -19,7 +20,7 @@ interface EnvelopeCardProps {
 
 type Phase = 'closed' | 'opening' | 'opened'
 
-export function EnvelopeCard({ perfumeName, index, recommendation, onOpen, uploadedImage, analysisDate }: EnvelopeCardProps) {
+export function EnvelopeCard({ perfumeName, index, recommendation, hint, onOpen, uploadedImage, analysisDate }: EnvelopeCardProps) {
   const [phase, setPhase] = useState<Phase>('closed')
   const [showDetail, setShowDetail] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -162,13 +163,20 @@ export function EnvelopeCard({ perfumeName, index, recommendation, onOpen, uploa
           />
         </div>
 
-        {/* Label */}
-        <span
-          className={`mt-1 tracking-wider font-semibold ${phase === 'opened' ? '' : 'text-[#999]'}`}
-          style={{ ...serifFont, fontSize: '1.8dvh', ...(phase === 'opened' ? { color: accentColor } : {}) }}
-        >
-          {phase === 'opened' ? 'TAP TO VIEW' : `NO.${displayNumber}`}
-        </span>
+        {/* Hint label */}
+        {hint && (
+          <span
+            className="mt-1 text-center leading-tight"
+            style={{
+              fontSize: '1.5dvh',
+              color: '#333',
+              fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+              fontWeight: 500,
+            }}
+          >
+            {hint}
+          </span>
+        )}
       </div>
 
       {/* Perfume detail modal */}

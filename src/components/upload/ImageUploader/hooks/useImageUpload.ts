@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useCallback, useRef } from 'react'
 import { UPLOAD_CONSTRAINTS, ERROR_MESSAGES } from '../constants'
 import { logger } from '@/lib/utils/logger'
 
@@ -33,18 +32,23 @@ interface UseImageUploadReturn {
   file: File | null
   preview: string | null
   isUploading: boolean
+  isAnalyzing: boolean
+  resultId: string | null
   error: string | null
   handleFileSelect: (acceptedFiles: File[]) => void
   analyzeImage: () => Promise<void>
   clearImage: () => void
+  abortAnalysis: () => void
 }
 
 export function useImageUpload(): UseImageUploadReturn {
-  const router = useRouter()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [resultId, setResultId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   const handleFileSelect = useCallback((acceptedFiles: File[]) => {
     setError(null)
@@ -56,13 +60,11 @@ export function useImageUpload(): UseImageUploadReturn {
 
     const selectedFile = acceptedFiles[0]
 
-    // Validate file type
     if (!UPLOAD_CONSTRAINTS.acceptedTypes.includes(selectedFile.type)) {
       setError(ERROR_MESSAGES.INVALID_TYPE)
       return
     }
 
-    // Validate file size
     if (selectedFile.size > UPLOAD_CONSTRAINTS.maxSize) {
       setError(ERROR_MESSAGES.FILE_TOO_LARGE)
       return
@@ -70,13 +72,11 @@ export function useImageUpload(): UseImageUploadReturn {
 
     setFile(selectedFile)
 
-    // Generate preview using FileReader
     const reader = new FileReader()
 
     reader.onloadend = () => {
       const result = reader.result as string
 
-      // Validate that we got a proper data URL
       if (!result || !result.startsWith('data:image/')) {
         logger.error('Invalid data URL generated:', result?.substring(0, 50))
         setError(ERROR_MESSAGES.UNKNOWN_ERROR)
@@ -100,29 +100,60 @@ export function useImageUpload(): UseImageUploadReturn {
       return
     }
 
-    setIsUploading(true)
+    setIsAnalyzing(true)
     setError(null)
 
-    try {
-      // Generate a temporary analysis ID
-      const analysisId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const abortController = new AbortController()
+    abortRef.current = abortController
 
-      // Compress image to fit sessionStorage quota (~5MB limit)
+    try {
       const compressed = await compressForStorage(preview)
 
-      sessionStorage.setItem(`analysis-pending-${analysisId}`, JSON.stringify({
+      logger.log('[Analysis] Starting API call...')
+      const apiStart = Date.now()
+
+      const response = await fetch('/api/analyze-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: compressed,
+          options: { language: 'ko' },
+        }),
+        signal: abortController.signal,
+      })
+
+      const data = await response.json()
+
+      const duration = ((Date.now() - apiStart) / 1000).toFixed(2)
+      logger.log(`[Analysis] API completed in ${duration}s`)
+
+      if (!data.success) {
+        throw new Error(data.error || ERROR_MESSAGES.UPLOAD_FAILED)
+      }
+
+      const id = data.data.analysisId
+      sessionStorage.setItem(`analysis-${id}`, JSON.stringify({
+        ...data.data,
         uploadedImage: compressed,
-        timestamp: Date.now()
       }))
 
-      // Navigate to analyzing page immediately (analysis will happen there)
-      router.push(`/analyzing/${analysisId}`)
+      setResultId(id)
     } catch (err) {
-      logger.error('Navigation error:', err)
-      setError(err instanceof Error ? err.message : ERROR_MESSAGES.UNKNOWN_ERROR)
-      setIsUploading(false)
+      if (err instanceof Error && err.name === 'AbortError') {
+        logger.log('[Analysis] Request aborted')
+        return
+      }
+      logger.error('Analysis error:', err)
+      setError(err instanceof Error ? err.message : ERROR_MESSAGES.UPLOAD_FAILED)
+      setIsAnalyzing(false)
     }
-  }, [preview, router])
+  }, [preview])
+
+  const abortAnalysis = useCallback(() => {
+    abortRef.current?.abort()
+    setIsAnalyzing(false)
+    setError(null)
+  }, [])
 
   const clearImage = useCallback(() => {
     setFile(null)
@@ -134,9 +165,12 @@ export function useImageUpload(): UseImageUploadReturn {
     file,
     preview,
     isUploading,
+    isAnalyzing,
+    resultId,
     error,
     handleFileSelect,
     analyzeImage,
     clearImage,
+    abortAnalysis,
   }
 }

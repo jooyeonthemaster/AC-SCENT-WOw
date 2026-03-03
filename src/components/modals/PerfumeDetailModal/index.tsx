@@ -166,7 +166,9 @@ export function PerfumeDetailModal({
             style={{
               position: 'fixed',
               top: 0, left: 0, right: 0, bottom: 0,
-              backgroundColor: '#000000',
+              backgroundColor: 'rgba(245, 240, 232, 0.6)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
               zIndex: 99990,
             }}
           />
@@ -194,6 +196,8 @@ export function PerfumeDetailModal({
                 height: CARD_HEIGHT,
                 position: 'relative',
                 overflow: 'hidden',
+                borderRadius: 16,
+                boxShadow: '0 8px 40px rgba(0,0,0,0.3)',
               }}
             >
               {/* Background template image (display: WebP 21KB, save: JPEG 6.2MB) */}
@@ -342,6 +346,7 @@ export function PerfumeDetailModal({
                   lineHeight: STORY_LINE_HEIGHT,
                   color: '#000',
                   margin: 0,
+                  wordBreak: 'keep-all',
                   ...cardFont,
                 }}>
                   {reasoning}
@@ -365,12 +370,10 @@ export function PerfumeDetailModal({
                   lineHeight: 1.5,
                   color: '#000',
                   margin: 0,
+                  wordBreak: 'keep-all',
                   ...cardFont,
                 }}>
-                  매장 내 향 오르간에서 이 향을 직접 만나보세요.
-                  선반 위 시향 용기를 들어올리면 모니터에 향 정보와
-                  미디어아트가 표시됩니다. 용기의 뚜껑을 열어
-                  향을 맡아보세요.
+                  매장 내 향 오르간에서 이 향을 직접 만나보세요. 오르간 위 시향 병을 들어올리면 모니터에 향 정보와 최애 사진이 표시됩니다. 용기의 뚜껑을 열어 향을 맡아보세요.
                 </p>
               </div>
 
@@ -407,9 +410,10 @@ export function PerfumeDetailModal({
                   gap: 6,
                   padding: '0 16px',
                   borderRadius: 20,
-                  backgroundColor: 'rgba(255,255,255,0.15)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  color: '#fff',
+                  backgroundColor: '#FFFDF8',
+                  border: '2px solid #333',
+                  boxShadow: '2px 2px 0px #333',
+                  color: '#333',
                   fontSize: 12,
                   cursor: 'pointer',
                   ...cardFont,
@@ -426,9 +430,10 @@ export function PerfumeDetailModal({
                   gap: 6,
                   padding: '0 16px',
                   borderRadius: 20,
-                  backgroundColor: 'rgba(255,255,255,0.15)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  color: '#fff',
+                  backgroundColor: '#FFFDF8',
+                  border: '2px solid #333',
+                  boxShadow: '2px 2px 0px #333',
+                  color: '#333',
                   fontSize: 12,
                   cursor: 'pointer',
                   ...cardFont,

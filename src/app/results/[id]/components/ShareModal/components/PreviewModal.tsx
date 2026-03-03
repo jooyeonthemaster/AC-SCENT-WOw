@@ -1,10 +1,10 @@
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ArrowLeft, Download, Loader2 } from 'lucide-react'
 import { ShareCardNew } from '../../ShareCardNew'
 import { ShareCardProps } from '../types'
 import { PREVIEW_SCALE } from '../constants'
-import { serifFont } from '@/lib/constants/styles'
 
 interface PreviewModalProps extends ShareCardProps {
   isOpen: boolean
@@ -28,20 +28,38 @@ export function PreviewModal({
   perfumeBrand,
   analysisData,
 }: PreviewModalProps) {
+  const [isDownloading, setIsDownloading] = useState(false)
+  const showLoading = isGenerating || isDownloading
+
+  const handleDownload = async () => {
+    setIsDownloading(true)
+    try {
+      await onDownload()
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
   if (typeof document === 'undefined') return null
 
   return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* 미리보기 배경 */}
+          {/* 배경 블러 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black"
-            style={{ zIndex: 99995 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(245, 240, 232, 0.7)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              zIndex: 99995,
+            }}
           />
 
           {/* 미리보기 콘텐츠 */}
@@ -50,67 +68,123 @@ export function PreviewModal({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-0 flex items-center justify-center"
-            style={{ zIndex: 99996 }}
+            className="fixed inset-0 flex flex-col items-center justify-center"
+            style={{ zIndex: 99996, padding: '16px' }}
           >
-            <div className="w-full max-w-[455px] h-full flex flex-col bg-black">
-              {/* 상단 헤더 */}
-              <div className="flex items-center justify-between px-4 py-3 bg-black">
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-white/10 transition-colors"
-                >
-                  <ArrowLeft size={20} className="text-white" />
-                </button>
-                <span
-                  className="text-xs tracking-[0.2em] text-white/80 font-medium"
-                  style={serifFont}
-                >
-                  PREVIEW
-                </span>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-white/10 transition-colors"
-                >
-                  <X size={20} className="text-white" />
-                </button>
-              </div>
+            {/* 상단 헤더 */}
+            <div style={{
+              width: '100%',
+              maxWidth: 420,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 12,
+            }}>
+              <button
+                onClick={onClose}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  backgroundColor: '#FFFDF8',
+                  border: '2px solid #333',
+                  boxShadow: '2px 2px 0px #333',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <ArrowLeft size={16} color="#333" />
+              </button>
+              <span style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: '#333',
+                fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+              }}>
+                미리보기
+              </span>
+              <button
+                onClick={onClose}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  backgroundColor: '#FFFDF8',
+                  border: '2px solid #333',
+                  boxShadow: '2px 2px 0px #333',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <X size={16} color="#333" />
+              </button>
+            </div>
 
-              {/* ShareCardNew 컴포넌트 직접 렌더링 */}
-              <div className="flex-1 overflow-auto flex items-center justify-center py-4">
-                <div
-                  className="origin-center"
-                  style={{ transform: `scale(${PREVIEW_SCALE})` }}
-                >
-                  <ShareCardNew
-                    ref={previewCardRef}
-                    userImage={userImage}
-                    twitterName={twitterName}
-                    userName={userName}
-                    userGender={userGender}
-                    perfumeName={perfumeName}
-                    perfumeBrand={perfumeBrand}
-                    analysisData={analysisData}
-                  />
-                </div>
+            {/* ShareCardNew */}
+            <div style={{
+              flex: 1,
+              overflow: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 0,
+            }}>
+              <div style={{
+                transform: `scale(${PREVIEW_SCALE})`,
+                transformOrigin: 'center center',
+                borderRadius: 12,
+                border: '2px solid #333',
+                boxShadow: '4px 4px 0px #333',
+                overflow: 'hidden',
+              }}>
+                <ShareCardNew
+                  ref={previewCardRef}
+                  userImage={userImage}
+                  twitterName={twitterName}
+                  userName={userName}
+                  userGender={userGender}
+                  perfumeName={perfumeName}
+                  perfumeBrand={perfumeBrand}
+                  analysisData={analysisData}
+                />
               </div>
+            </div>
 
-              {/* 하단 저장 버튼 */}
-              <div className="p-4 bg-black">
-                <button
-                  onClick={onDownload}
-                  disabled={isGenerating}
-                  className="w-full py-4 px-6 border-2 border-white text-white font-semibold tracking-wider disabled:opacity-50 transition-colors duration-150 active:bg-white active:text-black flex items-center justify-center gap-2"
-                  style={serifFont}
-                >
-                  {isGenerating ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <Download size={18} />
-                  )}
-                  {isGenerating ? 'SAVING...' : 'SAVE IMAGE'}
-                </button>
-              </div>
+            {/* 하단 저장 버튼 */}
+            <div style={{ width: '100%', maxWidth: 420, marginTop: 12 }}>
+              <button
+                onClick={handleDownload}
+                disabled={showLoading}
+                style={{
+                  width: '100%',
+                  padding: '14px 24px',
+                  borderRadius: 14,
+                  backgroundColor: '#BB0000',
+                  border: '2px solid #333',
+                  boxShadow: '3px 3px 0px #333',
+                  color: '#fff',
+                  fontSize: 15,
+                  fontWeight: 700,
+                  fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  cursor: showLoading ? 'not-allowed' : 'pointer',
+                  opacity: showLoading ? 0.5 : 1,
+                }}
+              >
+                {showLoading ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Download size={18} />
+                )}
+                {showLoading ? '저장 중...' : '이미지 저장'}
+              </button>
             </div>
           </motion.div>
         </>

@@ -1,17 +1,13 @@
 "use client"
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X } from 'lucide-react'
+import { ArrowLeft, Download, Loader2, Share2 } from 'lucide-react'
+import { domToPng } from 'modern-screenshot'
 import { ShareCardNew } from '../ShareCardNew'
 import { ShareModalProps } from './types'
-import { useScrollLock } from './hooks/useScrollLock'
-import { useImageGenerator } from './hooks/useImageGenerator'
-import { useShareActions } from './hooks/useShareActions'
-import { ShareButtons } from './components/ShareButtons'
-import { PreviewModal } from './components/PreviewModal'
-import { serifFont } from '@/lib/constants/styles'
+import { SHARE_CARD_DIMENSIONS } from './constants'
 
 export function ShareModal({
   isOpen,
@@ -23,51 +19,152 @@ export function ShareModal({
   perfumeName,
   perfumeBrand,
   analysisData,
-  shareUrl,
+  accentColor,
+  timestamp,
 }: ShareModalProps) {
   const cardRef = useRef<HTMLDivElement>(null)
-  const previewCardRef = useRef<HTMLDivElement>(null)
-  const [previewMode, setPreviewMode] = useState(false)
+  const cachedBlobRef = useRef<Blob | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  // Hooks
-  useScrollLock(isOpen)
-  const { generateImage, generateDataUrl } = useImageGenerator()
-  const { isGenerating, setIsGenerating, copied, handleLinkShare, handleImageShare } =
-    useShareActions({
-      shareUrl,
-      perfumeName,
-      twitterName,
-      generateImage,
+  // ── 모달 열릴 때 자동 이미지 생성 ──
+  useEffect(() => {
+    if (!isOpen) {
+      cachedBlobRef.current = null
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+        setPreviewUrl(null)
+      }
+      setIsGenerating(false)
+      return
+    }
+
+    let cancelled = false
+
+    const generate = async () => {
+      setIsGenerating(true)
+      // 카드 렌더링 대기
+      await new Promise(r => setTimeout(r, 500))
+      if (cancelled || !cardRef.current) {
+        setIsGenerating(false)
+        return
+      }
+
+      try {
+        // 폰트/이미지 로드 대기
+        if (document.fonts?.ready) {
+          await document.fonts.ready.catch(() => undefined)
+        }
+        const images = Array.from(cardRef.current.querySelectorAll('img'))
+        await Promise.all(
+          images.map(img => new Promise<void>(resolve => {
+            if (img.complete && img.naturalWidth > 0) return resolve()
+            img.onload = () => resolve()
+            img.onerror = () => resolve()
+          }))
+        )
+        await new Promise(resolve =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve))
+        )
+
+        if (cancelled) return
+
+        const dataUrl = await domToPng(cardRef.current, {
+          width: SHARE_CARD_DIMENSIONS.width,
+          height: SHARE_CARD_DIMENSIONS.height,
+          scale: SHARE_CARD_DIMENSIONS.scale,
+          backgroundColor: '#F5F0E8',
+        })
+
+        if (cancelled) return
+
+        const response = await fetch(dataUrl)
+        const blob = await response.blob()
+        cachedBlobRef.current = blob
+
+        const url = URL.createObjectURL(blob)
+        setPreviewUrl(url)
+      } catch (error) {
+        console.error('Image generation error:', error)
+      } finally {
+        if (!cancelled) setIsGenerating(false)
+      }
+    }
+
+    generate()
+    return () => { cancelled = true }
+  }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── iOS Safari 배경 스크롤 차단 ──
+  useEffect(() => {
+    if (!isOpen) return
+
+    const scrollY = window.scrollY
+    const body = document.body
+    const html = document.documentElement
+
+    body.style.position = 'fixed'
+    body.style.top = `-${scrollY}px`
+    body.style.left = '0'
+    body.style.right = '0'
+    body.style.overflow = 'hidden'
+    html.style.overflow = 'hidden'
+
+    return () => {
+      body.style.position = ''
+      body.style.top = ''
+      body.style.left = ''
+      body.style.right = ''
+      body.style.overflow = ''
+      html.style.overflow = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [isOpen])
+
+  // ── blob → 다운로드 ──
+  const downloadBlob = useCallback((blob: Blob) => {
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `acscent_${Date.now()}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }, [])
+
+  // ── 공유하기 (유저 제스처에서 직접 실행) ──
+  const handleShare = async () => {
+    const blob = cachedBlobRef.current
+    if (!blob) return
+
+    const file = new File([blob], `acscent_${Date.now()}.png`, {
+      type: 'image/png',
     })
 
-  // Handlers
-  const handlePreview = () => {
-    setPreviewMode(true)
-  }
-
-  const handleClosePreview = () => {
-    setPreviewMode(false)
-  }
-
-  const handleDownloadFromPreview = async () => {
-    if (!previewCardRef.current) return
-
-    setIsGenerating(true)
     try {
-      const dataUrl = await generateDataUrl(previewCardRef.current)
-      if (!dataUrl) throw new Error('이미지 생성 실패')
-
-      const link = document.createElement('a')
-      link.href = dataUrl
-      link.download = `acscent_${Date.now()}.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `AC'SCENT IDENTITY`,
+          text: twitterName,
+        })
+      } else {
+        downloadBlob(blob)
+      }
     } catch (error) {
-      alert('다운로드 중 오류가 발생했습니다.')
-    } finally {
-      setIsGenerating(false)
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Share error:', error)
+        downloadBlob(blob)
+      }
     }
+  }
+
+  // ── 저장하기 ──
+  const handleDownload = () => {
+    const blob = cachedBlobRef.current
+    if (!blob) return
+    downloadBlob(blob)
   }
 
   if (typeof document === 'undefined') return null
@@ -76,7 +173,7 @@ export function ShareModal({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* 배경 오버레이 */}
+          {/* 배경 블러 */}
           <motion.div
             key="share-backdrop"
             initial={{ opacity: 0 }}
@@ -86,109 +183,196 @@ export function ShareModal({
             onClick={onClose}
             style={{
               position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: '#000000',
+              inset: 0,
+              backgroundColor: 'rgba(245, 240, 232, 0.6)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
               zIndex: 99990,
             }}
           />
 
-          {/* 모달 */}
+          {/* 메인 콘텐츠 */}
           <motion.div
-            key="share-modal"
-            initial={{ opacity: 0, y: 60, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 40, scale: 0.97 }}
-            transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-40px)] max-w-[338px] overflow-hidden"
+            key="share-preview"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             style={{
+              position: 'fixed',
+              inset: 0,
               zIndex: 99991,
-              backgroundColor: '#FFFFFF',
-              maxHeight: 'calc(100dvh - 80px)',
-              border: '1px solid #E5E5E5',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 16,
+              pointerEvents: 'none',
             }}
           >
-            {/* 빨간 코너 브래킷 */}
-            <span className="absolute top-2 left-2 w-5 h-5 border-t-2 border-l-2 border-[#BB0000] z-10" />
-            <span className="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-[#BB0000] z-10" />
-            <span className="absolute bottom-2 left-2 w-5 h-5 border-b-2 border-l-2 border-[#BB0000] z-10" />
-            <span className="absolute bottom-2 right-2 w-5 h-5 border-b-2 border-r-2 border-[#BB0000] z-10" />
-
-            {/* 닫기 버튼 */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 z-20 p-1.5 hover:bg-gray-100 transition-colors"
-            >
-              <X size={18} className="text-gray-400" />
-            </button>
-
-            {/* 스크롤 가능한 콘텐츠 */}
-            <div
-              className="overflow-y-auto px-6 py-8"
-              style={{ maxHeight: 'calc(100dvh - 80px)', scrollbarWidth: 'none' }}
-            >
-              {/* 헤더: 라벨 + 디바이더 + 타이틀 */}
-              <span className="text-xs tracking-[0.2em] text-[#BB0000] font-semibold" style={serifFont}>
-                AC&apos;SCENT
-              </span>
-              <div className="w-8 h-[2px] bg-[#BB0000] mt-1 mb-4" />
-              <h2
-                className="text-2xl font-bold text-[#1A1A1A] mb-6"
-                style={{ ...serifFont, letterSpacing: '-0.02em' }}
-              >
-                Share
-              </h2>
-
-              {/* 공유 카드 (숨김 처리 - 이미지 생성용) */}
-              <div className="absolute -left-[9999px] -top-[9999px]">
-                <ShareCardNew
-                  ref={cardRef}
-                  userImage={userImage}
-                  twitterName={twitterName}
-                  userName={userName}
-                  userGender={userGender}
-                  perfumeName={perfumeName}
-                  perfumeBrand={perfumeBrand}
-                  analysisData={analysisData}
-                />
-              </div>
-
-              {/* 섹션 라벨 */}
-              <p className="text-[10px] tracking-[0.15em] text-[#999] font-medium mb-3">OPTIONS</p>
-
-              {/* 공유 버튼들 */}
-              <ShareButtons
-                copied={copied}
-                isGenerating={isGenerating}
-                onLinkShare={handleLinkShare}
-                onImageShare={() => handleImageShare(cardRef.current, handlePreview)}
-                onPreview={handlePreview}
+            {/* 숨긴 카드 (이미지 생성용) */}
+            <div style={{ position: 'absolute', left: -9999, top: -9999 }}>
+              <ShareCardNew
+                ref={cardRef}
+                userImage={userImage}
+                twitterName={twitterName}
+                userName={userName}
+                userGender={userGender}
+                perfumeName={perfumeName}
+                perfumeBrand={perfumeBrand}
+                analysisData={analysisData}
+                accentColor={accentColor}
+                timestamp={timestamp}
               />
+            </div>
 
-              {/* 안내 문구 */}
-              <p className="text-center text-[10px] tracking-[0.1em] text-[#999] mt-5">
-                친구에게 내 향수 결과를 공유해보세요
-              </p>
+            {/* 카드 미리보기 (스크롤 가능, 하단 버튼 제외) */}
+            <div
+              style={{
+                flex: 1,
+                overflow: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'center',
+                minHeight: 0,
+                pointerEvents: 'auto',
+                padding: '8px 12px 0',
+              }}
+            >
+              {isGenerating ? (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  gap: 12,
+                }}>
+                  <Loader2
+                    size={32}
+                    color="#999"
+                    className="animate-spin"
+                  />
+                  <span style={{
+                    fontSize: 13,
+                    color: '#888',
+                    fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                  }}>
+                    카드 생성 중...
+                  </span>
+                </div>
+              ) : previewUrl ? (
+                <div
+                  style={{
+                    width: '100%',
+                    borderRadius: 12,
+                    border: '2px solid #333',
+                    boxShadow: '4px 4px 0px #333',
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                  }}
+                >
+                  <img
+                    src={previewUrl}
+                    alt="공유 카드 미리보기"
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      height: 'auto',
+                    }}
+                  />
+                </div>
+              ) : null}
+            </div>
+
+            {/* 하단 버튼 3개: 공유 / 저장 / 뒤로 */}
+            <div style={{
+              width: '100%',
+              maxWidth: 420,
+              marginTop: 12,
+              display: 'flex',
+              gap: 8,
+              pointerEvents: 'auto',
+            }}>
+              {/* 공유하기 */}
+              <button
+                onClick={handleShare}
+                disabled={!previewUrl}
+                style={{
+                  flex: 1,
+                  padding: '13px 12px',
+                  borderRadius: 14,
+                  backgroundColor: previewUrl ? '#BB0000' : '#ccc',
+                  border: '2px solid #333',
+                  boxShadow: '3px 3px 0px #333',
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  cursor: previewUrl ? 'pointer' : 'not-allowed',
+                }}
+              >
+                <Share2 size={16} />
+                공유
+              </button>
+
+              {/* 저장하기 */}
+              <button
+                onClick={handleDownload}
+                disabled={!previewUrl}
+                style={{
+                  flex: 1,
+                  padding: '13px 12px',
+                  borderRadius: 14,
+                  backgroundColor: previewUrl ? '#FFFDF8' : '#eee',
+                  border: '2px solid #333',
+                  boxShadow: '3px 3px 0px #333',
+                  color: '#333',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  cursor: previewUrl ? 'pointer' : 'not-allowed',
+                }}
+              >
+                <Download size={16} />
+                저장
+              </button>
+
+              {/* 뒤로가기 */}
+              <button
+                onClick={onClose}
+                style={{
+                  flex: 1,
+                  padding: '13px 12px',
+                  borderRadius: 14,
+                  backgroundColor: '#FFFDF8',
+                  border: '2px solid #333',
+                  boxShadow: '3px 3px 0px #333',
+                  color: '#333',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  cursor: 'pointer',
+                }}
+              >
+                <ArrowLeft size={16} />
+                뒤로
+              </button>
             </div>
           </motion.div>
-
-          {/* 이미지 미리보기 모달 */}
-          <PreviewModal
-            isOpen={previewMode}
-            isGenerating={isGenerating}
-            previewCardRef={previewCardRef}
-            onClose={handleClosePreview}
-            onDownload={handleDownloadFromPreview}
-            userImage={userImage}
-            twitterName={twitterName}
-            userName={userName}
-            userGender={userGender}
-            perfumeName={perfumeName}
-            perfumeBrand={perfumeBrand}
-            analysisData={analysisData}
-          />
         </>
       )}
     </AnimatePresence>,
