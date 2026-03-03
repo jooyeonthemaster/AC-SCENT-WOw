@@ -2,8 +2,8 @@
 
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Download } from 'lucide-react'
-import html2canvas from 'html2canvas'
+import { X, Download, Share2, Loader2 } from 'lucide-react'
+import { domToPng } from 'modern-screenshot'
 import { useScrollLock } from '@/app/results/[id]/components/ShareModal/hooks/useScrollLock'
 const cardFont = { fontFamily: '"Poppins", "Noto Sans KR", sans-serif' } as const
 import { ScentProfileGrid } from './ScentProfileGrid'
@@ -17,7 +17,7 @@ const CARD_HEIGHT = 573
 
 // Two-tier template loading: light WebP for display, original JPEG for saving
 const TEMPLATE_DISPLAY = '/images/2_display.webp' // ~21KB
-const TEMPLATE_HIRES = '/images/2.jpeg'           // ~6.2MB (for image save)
+const TEMPLATE_HIRES = '/images/2.jpeg'           // ~6.2MB (for image capture)
 
 /*
   Pixel-measured coordinates (2.jpeg @ 3072x5504, scale=9.6):
@@ -67,6 +67,213 @@ interface PerfumeDetailModalProps {
   analysisDate?: number
 }
 
+/** Card content shared between hidden capture div and display modal */
+function CardContent({
+  perfume,
+  reasoning,
+  uploadedImage,
+  accentColor,
+  dateStr,
+  templateSrc,
+}: {
+  perfume: PerfumeRecommendation['perfume']
+  reasoning: string
+  uploadedImage?: string
+  accentColor: string
+  dateStr: string
+  templateSrc: string
+}) {
+  return (
+    <>
+      {/* Background template image */}
+      <img
+        src={templateSrc}
+        alt="template"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'fill',
+          zIndex: 0,
+        }}
+      />
+
+      {/* User photo (inner frame: x=20, y=79, w=83, h=102.5) */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 79,
+          left: 20,
+          width: 83,
+          height: 102.5,
+          zIndex: 10,
+          clipPath: 'inset(0)',
+        }}
+      >
+        {uploadedImage ? (
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+            <img
+              src={uploadedImage}
+              alt="Your photo"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          </div>
+        ) : (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              backgroundColor: '#f5f5f5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span style={{ fontSize: 8, color: '#bbb', ...cardFont }}>PHOTO</span>
+          </div>
+        )}
+      </div>
+
+      {/* Scent Information — name/ID */}
+      <span
+        style={{
+          position: 'absolute',
+          top: 100,
+          left: 130,
+          width: 170,
+          zIndex: 10,
+          fontSize: 12,
+          color: '#000',
+          ...cardFont,
+        }}
+      >
+        {perfume.id}
+      </span>
+
+      {/* Notes: Top / Middle / Base */}
+      {[
+        { label: 'Top', value: perfume.mainScent.name, y: 122 },
+        { label: 'Middle', value: perfume.subScent1.name, y: 144 },
+        { label: 'Base', value: perfume.subScent2.name, y: 166 },
+      ].map(({ label, value, y }) => (
+        <div
+          key={label}
+          style={{
+            position: 'absolute',
+            top: y,
+            left: 130,
+            width: 170,
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'baseline',
+            ...cardFont,
+          }}
+        >
+          <span style={{ color: '#000', fontSize: 11, width: 45, flexShrink: 0 }}>
+            {label}
+          </span>
+          <span style={{ color: '#000', fontSize: 12 }}>
+            {value}
+          </span>
+        </div>
+      ))}
+
+      {/* Scent Profile circles (box: y=225~278) */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 232,
+          left: BOX_LEFT,
+          width: BOX_WIDTH,
+          zIndex: 10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <ScentProfileGrid
+          characteristics={perfume.characteristics}
+          accentColor={accentColor}
+          circleSize={32}
+        />
+      </div>
+
+      {/* Scent Story text (box: y=316~401) */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 322,
+          left: BOX_LEFT,
+          width: BOX_WIDTH,
+          height: STORY_BOX_HEIGHT,
+          zIndex: 10,
+          overflow: 'hidden',
+        }}
+      >
+        <p style={{
+          fontSize: getStoryFontSize(reasoning),
+          lineHeight: STORY_LINE_HEIGHT,
+          color: '#000',
+          margin: 0,
+          wordBreak: 'keep-all',
+          ...cardFont,
+        }}>
+          {reasoning}
+        </p>
+      </div>
+
+      {/* How to text (box: y=438~523) */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 444,
+          left: BOX_LEFT,
+          width: BOX_WIDTH,
+          height: 75,
+          zIndex: 10,
+          overflow: 'hidden',
+        }}
+      >
+        <p style={{
+          fontSize: 12,
+          lineHeight: 1.5,
+          color: '#000',
+          margin: 0,
+          wordBreak: 'keep-all',
+          ...cardFont,
+        }}>
+          매장 내 향 오르간에서 이 향을 직접 만나보세요. 오르간 위 시향 병을 들어올리면 모니터에 향 정보와 최애 사진이 표시됩니다. 용기의 뚜껑을 열어 향을 맡아보세요.
+        </p>
+      </div>
+
+      {/* Date in footer — right side */}
+      <span
+        style={{
+          position: 'absolute',
+          top: 538,
+          right: 18,
+          zIndex: 10,
+          fontSize: 10,
+          color: '#999',
+          letterSpacing: '0.05em',
+          ...cardFont,
+        }}
+      >
+        {dateStr}
+      </span>
+    </>
+  )
+}
+
 export function PerfumeDetailModal({
   isOpen,
   onClose,
@@ -78,58 +285,71 @@ export function PerfumeDetailModal({
 }: PerfumeDetailModalProps) {
   useScrollLock(isOpen)
 
-  const cardRef = useRef<HTMLDivElement>(null)
-  const templateRef = useRef<HTMLImageElement>(null)
+  const hiddenCardRef = useRef<HTMLDivElement>(null)
+  const cachedBlobRef = useRef<Blob | null>(null)
   const [cardScale, setCardScale] = useState(1)
-  const [isSaving, setIsSaving] = useState(false)
+  const [isReady, setIsReady] = useState(false)
 
-  const handleSaveImage = useCallback(async () => {
-    if (!cardRef.current || !templateRef.current) return
-    setIsSaving(true)
+  const { perfume, reasoning } = recommendation
 
-    try {
-      // Swap to high-res template for capture
-      const origSrc = templateRef.current.src
-      templateRef.current.src = TEMPLATE_HIRES
-      await new Promise<void>((resolve, reject) => {
-        templateRef.current!.onload = () => resolve()
-        templateRef.current!.onerror = () => reject()
-        // If already cached, onload won't fire
-        if (templateRef.current!.complete) resolve()
-      })
+  const d = analysisDate ? new Date(analysisDate) : new Date()
+  const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: null,
-      })
+  // ── Pre-generate image on mount (before modal is ever opened) ──
+  useEffect(() => {
+    let cancelled = false
 
-      // Restore display template
-      templateRef.current.src = origSrc
+    const generate = async () => {
+      // Wait for DOM to settle
+      await new Promise(r => setTimeout(r, 800))
+      if (cancelled || !hiddenCardRef.current) return
 
-      const fileName = `${recommendation.perfume.id || 'scent-card'}.png`
-      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'))
-      if (!blob) return
+      try {
+        // Wait for fonts
+        if (document.fonts?.ready) {
+          await document.fonts.ready.catch(() => undefined)
+        }
 
-      // Mobile: try Web Share API (share sheet → save to gallery)
-      if (navigator.share && navigator.canShare?.({ files: [new File([blob], fileName, { type: 'image/png' })] })) {
-        const file = new File([blob], fileName, { type: 'image/png' })
-        await navigator.share({ files: [file] }).catch(() => {})
-        return
+        // Wait for all images in hidden card to load
+        const images = Array.from(hiddenCardRef.current.querySelectorAll('img'))
+        await Promise.all(
+          images.map(img => new Promise<void>(resolve => {
+            if (img.complete && img.naturalWidth > 0) return resolve()
+            img.onload = () => resolve()
+            img.onerror = () => resolve()
+          }))
+        )
+
+        // Extra frame for rendering
+        await new Promise(resolve =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve))
+        )
+
+        if (cancelled) return
+
+        const dataUrl = await domToPng(hiddenCardRef.current, {
+          width: CARD_WIDTH,
+          height: CARD_HEIGHT,
+          scale: 2,
+          backgroundColor: null,
+        })
+
+        if (cancelled) return
+
+        const response = await fetch(dataUrl)
+        const blob = await response.blob()
+        cachedBlobRef.current = blob
+        if (!cancelled) setIsReady(true)
+      } catch (error) {
+        console.error('Pre-generation error:', error)
       }
-
-      // Fallback: download link
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.download = fileName
-      link.href = url
-      link.click()
-      URL.revokeObjectURL(url)
-    } finally {
-      setIsSaving(false)
     }
-  }, [recommendation.perfume.id])
 
+    generate()
+    return () => { cancelled = true }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Responsive scale ──
   useEffect(() => {
     function updateScale() {
       const padding = 24
@@ -144,309 +364,217 @@ export function PerfumeDetailModal({
     return () => window.removeEventListener('resize', updateScale)
   }, [])
 
+  // ── Download helper ──
+  const downloadBlob = useCallback((blob: Blob) => {
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${perfume.id || 'scent-card'}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }, [perfume.id])
+
+  // ── Share handler ──
+  const handleShare = useCallback(async () => {
+    const blob = cachedBlobRef.current
+    if (!blob) return
+
+    const file = new File([blob], `${perfume.id || 'scent-card'}.png`, { type: 'image/png' })
+
+    try {
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `AC'SCENT IDENTITY`,
+          text: perfume.id,
+        })
+      } else {
+        downloadBlob(blob)
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Share error:', error)
+        downloadBlob(blob)
+      }
+    }
+  }, [perfume.id, downloadBlob])
+
+  // ── Download handler ──
+  const handleDownload = useCallback(() => {
+    const blob = cachedBlobRef.current
+    if (!blob) return
+    downloadBlob(blob)
+  }, [downloadBlob])
+
   if (typeof document === 'undefined') return null
 
-  const { perfume, reasoning } = recommendation
-
-  const d = analysisDate ? new Date(analysisDate) : new Date()
-  const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
+  const btnEnabled = isReady
 
   return createPortal(
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            key="perfume-detail-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={onClose}
-            style={{
-              position: 'fixed',
-              top: 0, left: 0, right: 0, bottom: 0,
-              backgroundColor: 'rgba(245, 240, 232, 0.6)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              zIndex: 99990,
-            }}
+    <>
+      {/* Hidden card for image capture — always rendered, uses hi-res JPEG */}
+      <div style={{ position: 'absolute', left: -9999, top: -9999, pointerEvents: 'none' }}>
+        <div
+          ref={hiddenCardRef}
+          style={{
+            width: CARD_WIDTH,
+            height: CARD_HEIGHT,
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <CardContent
+            perfume={perfume}
+            reasoning={reasoning}
+            uploadedImage={uploadedImage}
+            accentColor={accentColor}
+            dateStr={dateStr}
+            templateSrc={TEMPLATE_HIRES}
           />
+        </div>
+      </div>
 
-          {/* Modal wrapper — card + buttons */}
-          <motion.div
-            key="perfume-detail-modal"
-            initial={{ opacity: 0, y: 60, scale: 0.95 * cardScale }}
-            animate={{ opacity: 1, y: 0, scale: cardScale }}
-            exit={{ opacity: 0, y: 40, scale: 0.97 * cardScale }}
-            transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-            className="fixed top-1/2 left-1/2"
-            style={{
-              zIndex: 99991,
-              width: CARD_WIDTH,
-              marginLeft: -CARD_WIDTH / 2,
-              marginTop: -(CARD_HEIGHT + 48) / 2,
-            }}
-          >
-            {/* Card container (captured for image save) */}
-            <div
-              ref={cardRef}
+      {/* Modal */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="perfume-detail-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={onClose}
               style={{
+                position: 'fixed',
+                top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(245, 240, 232, 0.6)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                zIndex: 99990,
+              }}
+            />
+
+            {/* Modal wrapper — card + buttons */}
+            <motion.div
+              key="perfume-detail-modal"
+              initial={{ opacity: 0, y: 60, scale: 0.95 * cardScale }}
+              animate={{ opacity: 1, y: 0, scale: cardScale }}
+              exit={{ opacity: 0, y: 40, scale: 0.97 * cardScale }}
+              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+              className="fixed top-1/2 left-1/2"
+              style={{
+                zIndex: 99991,
                 width: CARD_WIDTH,
-                height: CARD_HEIGHT,
-                position: 'relative',
-                overflow: 'hidden',
-                borderRadius: 16,
-                boxShadow: '0 8px 40px rgba(0,0,0,0.3)',
+                marginLeft: -CARD_WIDTH / 2,
+                marginTop: -(CARD_HEIGHT + 48) / 2,
               }}
             >
-              {/* Background template image (display: WebP 21KB, save: JPEG 6.2MB) */}
-              <img
-                ref={templateRef}
-                src={TEMPLATE_DISPLAY}
-                alt="template"
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'fill',
-                  zIndex: 0,
-                }}
-              />
-
-              {/* === Dynamic content === */}
-
-              {/* User photo (inner frame: x=20, y=79, w=83, h=111 — 3:4 ratio) */}
+              {/* Live display card (WebP background for fast rendering) */}
               <div
                 style={{
-                  position: 'absolute',
-                  top: 79,
-                  left: 20,
-                  width: 83,
-                  height: 102.5,
-                  zIndex: 10,
-                  clipPath: 'inset(0)',
+                  width: CARD_WIDTH,
+                  height: CARD_HEIGHT,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  borderRadius: 16,
+                  boxShadow: '0 8px 40px rgba(0,0,0,0.3)',
                 }}
               >
-                {uploadedImage ? (
-                  <div style={{
-                    position: 'absolute',
-                    inset: 0,
-                    overflow: 'hidden',
-                  }}>
-                    <img
-                      src={uploadedImage}
-                      alt="Your photo"
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      backgroundColor: '#f5f5f5',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <span style={{ fontSize: 8, color: '#bbb', ...cardFont }}>PHOTO</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Scent Information — name/ID above underline 1 */}
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 100,
-                  left: 130,
-                  width: 170,
-                  zIndex: 10,
-                  fontSize: 12,
-                  color: '#000',
-                  ...cardFont,
-                }}
-              >
-                {perfume.id}
-              </span>
-
-              {/* Notes: Top / Middle / Base above underlines 2-4 */}
-              {[
-                { label: 'Top', value: perfume.mainScent.name, y: 122 },
-                { label: 'Middle', value: perfume.subScent1.name, y: 144 },
-                { label: 'Base', value: perfume.subScent2.name, y: 166 },
-              ].map(({ label, value, y }) => (
-                <div
-                  key={label}
-                  style={{
-                    position: 'absolute',
-                    top: y,
-                    left: 130,
-                    width: 170,
-                    zIndex: 10,
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    ...cardFont,
-                  }}
-                >
-                  <span style={{ color: '#000', fontSize: 11, width: 45, flexShrink: 0 }}>
-                    {label}
-                  </span>
-                  <span style={{ color: '#000', fontSize: 12 }}>
-                    {value}
-                  </span>
-                </div>
-              ))}
-
-              {/* Scent Profile circles (box: y=225~278) */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 232,
-                  left: BOX_LEFT,
-                  width: BOX_WIDTH,
-                  zIndex: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <ScentProfileGrid
-                  characteristics={perfume.characteristics}
+                <CardContent
+                  perfume={perfume}
+                  reasoning={reasoning}
+                  uploadedImage={uploadedImage}
                   accentColor={accentColor}
-                  circleSize={32}
+                  dateStr={dateStr}
+                  templateSrc={TEMPLATE_DISPLAY}
                 />
               </div>
 
-              {/* Scent Story text (box: y=316~401) */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 322,
-                  left: BOX_LEFT,
-                  width: BOX_WIDTH,
-                  height: STORY_BOX_HEIGHT,
-                  zIndex: 10,
-                  overflow: 'hidden',
-                }}
-              >
-                <p style={{
-                  fontSize: getStoryFontSize(reasoning),
-                  lineHeight: STORY_LINE_HEIGHT,
-                  color: '#000',
-                  margin: 0,
-                  wordBreak: 'keep-all',
-                  ...cardFont,
-                }}>
-                  {reasoning}
-                </p>
+              {/* Action buttons: 공유 / 저장 / 닫기 */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 8,
+                marginTop: 10,
+                height: 38,
+              }}>
+                {/* 공유 */}
+                <button
+                  onClick={handleShare}
+                  disabled={!btnEnabled}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '0 14px',
+                    borderRadius: 20,
+                    backgroundColor: btnEnabled ? '#BB0000' : '#ccc',
+                    border: '2px solid #333',
+                    boxShadow: '2px 2px 0px #333',
+                    color: '#fff',
+                    fontSize: 12,
+                    cursor: btnEnabled ? 'pointer' : 'not-allowed',
+                    ...cardFont,
+                  }}
+                >
+                  {!btnEnabled ? <Loader2 size={13} className="animate-spin" /> : <Share2 size={13} />}
+                  <span>공유</span>
+                </button>
+
+                {/* 저장 */}
+                <button
+                  onClick={handleDownload}
+                  disabled={!btnEnabled}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '0 14px',
+                    borderRadius: 20,
+                    backgroundColor: btnEnabled ? '#FFFDF8' : '#eee',
+                    border: '2px solid #333',
+                    boxShadow: '2px 2px 0px #333',
+                    color: '#333',
+                    fontSize: 12,
+                    cursor: btnEnabled ? 'pointer' : 'not-allowed',
+                    ...cardFont,
+                  }}
+                >
+                  <Download size={13} />
+                  <span>저장</span>
+                </button>
+
+                {/* 닫기 */}
+                <button
+                  onClick={onClose}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '0 14px',
+                    borderRadius: 20,
+                    backgroundColor: '#FFFDF8',
+                    border: '2px solid #333',
+                    boxShadow: '2px 2px 0px #333',
+                    color: '#333',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    ...cardFont,
+                  }}
+                >
+                  <X size={13} />
+                  <span>닫기</span>
+                </button>
               </div>
-
-              {/* How to text (box: y=438~523) */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 444,
-                  left: BOX_LEFT,
-                  width: BOX_WIDTH,
-                  height: 75,
-                  zIndex: 10,
-                  overflow: 'hidden',
-                }}
-              >
-                <p style={{
-                  fontSize: 12,
-                  lineHeight: 1.5,
-                  color: '#000',
-                  margin: 0,
-                  wordBreak: 'keep-all',
-                  ...cardFont,
-                }}>
-                  매장 내 향 오르간에서 이 향을 직접 만나보세요. 오르간 위 시향 병을 들어올리면 모니터에 향 정보와 최애 사진이 표시됩니다. 용기의 뚜껑을 열어 향을 맡아보세요.
-                </p>
-              </div>
-
-              {/* Date in footer — right side */}
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 538,
-                  right: 18,
-                  zIndex: 10,
-                  fontSize: 10,
-                  color: '#999',
-                  letterSpacing: '0.05em',
-                  ...cardFont,
-                }}
-              >
-                {dateStr}
-              </span>
-            </div>
-
-            {/* Action buttons below card */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 12,
-              marginTop: 10,
-              height: 38,
-            }}>
-              <button
-                onClick={handleSaveImage}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '0 16px',
-                  borderRadius: 20,
-                  backgroundColor: '#FFFDF8',
-                  border: '2px solid #333',
-                  boxShadow: '2px 2px 0px #333',
-                  color: '#333',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  ...cardFont,
-                }}
-              >
-                <Download size={14} />
-                <span>저장</span>
-              </button>
-              <button
-                onClick={onClose}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '0 16px',
-                  borderRadius: 20,
-                  backgroundColor: '#FFFDF8',
-                  border: '2px solid #333',
-                  boxShadow: '2px 2px 0px #333',
-                  color: '#333',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  ...cardFont,
-                }}
-              >
-                <X size={14} />
-                <span>닫기</span>
-              </button>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>,
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>,
     document.body
   )
 }

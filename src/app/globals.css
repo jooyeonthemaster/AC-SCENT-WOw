@@ -49,6 +49,19 @@ html::-webkit-scrollbar {
   display: none;
 }
 
+/* 모든 요소 스크롤바 숨김 (스크롤은 유지) */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  -webkit-appearance: none !important;
+}
+
 body {
   min-height: -webkit-fill-available;
   background-color: var(--bg-main);

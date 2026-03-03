@@ -157,9 +157,10 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
     const d = timestamp ? new Date(timestamp) : new Date()
     const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 
-    // Auto font sizes
-    const descFont = fitFontSize(twitterName, 360, 165, 15, 7)
-    const storyFont = fitFontSize(personality, 360, 130, 15, 7)
+    // Auto font sizes — boxH must match actual content area (boxH - padding 24 - border 4 = 66)
+    const storyContentH = 66
+    const descFont = fitFontSize(twitterName, 362, storyContentH, 15, 7)
+    const storyFont = fitFontSize(personality, 362, storyContentH, 15, 7)
 
     const W = SHARE_CARD_DIMENSIONS.width   // 430
     const H = SHARE_CARD_DIMENSIONS.height  // 932
@@ -186,8 +187,9 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
           boxSizing: 'border-box',
         }}
       >
-        {/* ① Header — Logo */}
+        {/* ① Header — Logo (중앙) + 향수 번호 (우측) */}
         <div style={{
+          position: 'relative',
           display: 'flex', justifyContent: 'center', alignItems: 'center',
           height: L.headerH,
         }}>
@@ -197,49 +199,42 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
             style={{ height: L.headerLogoH, objectFit: 'contain', filter: 'invert(1)' }}
             crossOrigin="anonymous"
           />
+          <span style={{
+            position: 'absolute', left: '77%',
+            fontSize: 24, fontWeight: 800, color: '#333',
+          }}>
+            #{(perfumeBrand || persona?.id || "AC'SCENT 00").replace("AC'SCENT ", '')}
+          </span>
         </div>
 
-        {/* ② Scent Information (제목 없음) */}
+        {/* ② Scent Information — 노트만 전체 너비 */}
         <div style={{ marginTop: L.scentInfoMt, height: L.scentInfoH }}>
           <div style={{
-            ...boxStyle, borderRadius: 14, padding: 0,
+            ...boxStyle, borderRadius: 14, padding: '0 16px',
             height: L.scentInfoH, boxSizing: 'border-box',
-            display: 'flex', alignItems: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24,
           }}>
-            {/* 향수 이름 — 사진 컨테이너 너비 기준 중앙 */}
-            <div style={{
-              width: L.photoW, display: 'flex', justifyContent: 'center', flexShrink: 0,
-            }}>
-              <span style={{ fontSize: 17.5, fontWeight: 800, color: '#333', whiteSpace: 'nowrap' }}>
-                {perfumeBrand || persona?.id || "AC'SCENT 00"}
-              </span>
-            </div>
-            {/* 노트 — 나머지 공간 중앙 */}
-            <div style={{
-              flex: 1, display: 'flex', justifyContent: 'center', gap: 12,
-            }}>
-              {notes.map((n, i) => (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <span style={{
-                    fontSize: 13, fontWeight: 800,
-                    color: i === 0 ? '#BB0000' : i === 1 ? '#E8A838' : '#6B7280',
-                  }}>
-                    {n.label}
-                  </span>
-                  <span style={{
-                    fontSize: 15, fontWeight: 600, color: '#555',
-                    textAlign: 'center', lineHeight: 1.15,
-                    wordBreak: 'keep-all',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical' as const,
-                    overflow: 'hidden',
-                  }}>
-                    {n.name}
-                  </span>
-                </div>
-              ))}
-            </div>
+            {notes.map((n, i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span style={{
+                  fontSize: 13, fontWeight: 800,
+                  color: i === 0 ? '#BB0000' : i === 1 ? '#E8A838' : '#6B7280',
+                }}>
+                  {n.label}
+                </span>
+                <span style={{
+                  fontSize: 15, fontWeight: 600, color: '#555',
+                  textAlign: 'center', lineHeight: 1.15,
+                  wordBreak: 'keep-all',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical' as const,
+                  overflow: 'hidden',
+                }}>
+                  {n.name}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 

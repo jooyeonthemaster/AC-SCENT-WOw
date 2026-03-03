@@ -226,14 +226,14 @@ export function ShareModal({
               />
             </div>
 
-            {/* 카드 미리보기 (스크롤 가능, 하단 버튼 제외) */}
+            {/* 카드 미리보기 (스크롤 가능, 세로 중앙) */}
             <div
               style={{
                 flex: 1,
                 overflow: 'auto',
                 WebkitOverflowScrolling: 'touch',
                 display: 'flex',
-                alignItems: 'flex-start',
+                alignItems: 'center',
                 justifyContent: 'center',
                 minHeight: 0,
                 pointerEvents: 'auto',
@@ -290,10 +290,11 @@ export function ShareModal({
             <div style={{
               width: '100%',
               maxWidth: 420,
-              marginTop: 12,
+              marginTop: 8,
               display: 'flex',
-              gap: 8,
+              gap: 6,
               pointerEvents: 'auto',
+              flexShrink: 0,
             }}>
               {/* 공유하기 */}
               <button
@@ -301,23 +302,23 @@ export function ShareModal({
                 disabled={!previewUrl}
                 style={{
                   flex: 1,
-                  padding: '13px 12px',
-                  borderRadius: 14,
+                  padding: 'clamp(8px, 1.5dvh, 13px) 8px',
+                  borderRadius: 12,
                   backgroundColor: previewUrl ? '#BB0000' : '#ccc',
                   border: '2px solid #333',
-                  boxShadow: '3px 3px 0px #333',
+                  boxShadow: '2px 2px 0px #333',
                   color: '#fff',
-                  fontSize: 14,
+                  fontSize: 'clamp(11px, 1.6dvh, 14px)',
                   fontWeight: 700,
                   fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 6,
+                  gap: 4,
                   cursor: previewUrl ? 'pointer' : 'not-allowed',
                 }}
               >
-                <Share2 size={16} />
+                <Share2 size={14} />
                 공유
               </button>
 
@@ -327,23 +328,23 @@ export function ShareModal({
                 disabled={!previewUrl}
                 style={{
                   flex: 1,
-                  padding: '13px 12px',
-                  borderRadius: 14,
+                  padding: 'clamp(8px, 1.5dvh, 13px) 8px',
+                  borderRadius: 12,
                   backgroundColor: previewUrl ? '#FFFDF8' : '#eee',
                   border: '2px solid #333',
-                  boxShadow: '3px 3px 0px #333',
+                  boxShadow: '2px 2px 0px #333',
                   color: '#333',
-                  fontSize: 14,
+                  fontSize: 'clamp(11px, 1.6dvh, 14px)',
                   fontWeight: 700,
                   fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 6,
+                  gap: 4,
                   cursor: previewUrl ? 'pointer' : 'not-allowed',
                 }}
               >
-                <Download size={16} />
+                <Download size={14} />
                 저장
               </button>
 
@@ -352,23 +353,23 @@ export function ShareModal({
                 onClick={onClose}
                 style={{
                   flex: 1,
-                  padding: '13px 12px',
-                  borderRadius: 14,
+                  padding: 'clamp(8px, 1.5dvh, 13px) 8px',
+                  borderRadius: 12,
                   backgroundColor: '#FFFDF8',
                   border: '2px solid #333',
-                  boxShadow: '3px 3px 0px #333',
+                  boxShadow: '2px 2px 0px #333',
                   color: '#333',
-                  fontSize: 14,
+                  fontSize: 'clamp(11px, 1.6dvh, 14px)',
                   fontWeight: 700,
                   fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 6,
+                  gap: 4,
                   cursor: 'pointer',
                 }}
               >
-                <ArrowLeft size={16} />
+                <ArrowLeft size={14} />
                 뒤로
               </button>
             </div>

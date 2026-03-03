@@ -132,21 +132,10 @@ export function TemplateCard({
   const [openedBoxes, setOpenedBoxes] = useState<boolean[]>([false, false, false])
   const [imgPosition, setImgPosition] = useState<string>('center')
 
-  // 이미지 비율 감지 → 크롭 방향 결정
+  // 항상 상단 유지, 하단 크롭
   useEffect(() => {
     if (!uploadedImage) return
-    const img = new window.Image()
-    img.onload = () => {
-      const ratio = img.naturalWidth / img.naturalHeight
-      if (ratio < 0.75) {
-        // 세로로 긴 이미지 → 위쪽 유지, 아래 크롭
-        setImgPosition('top center')
-      } else {
-        // 가로로 긴 이미지 또는 3:4 → 좌우 균등 크롭
-        setImgPosition('center center')
-      }
-    }
-    img.src = uploadedImage
+    setImgPosition('top center')
   }, [uploadedImage])
 
   // 1.5배 키운 px 값 → dvh 변환 (기준 뷰포트 850px)
@@ -183,9 +172,9 @@ export function TemplateCard({
         />
       </div>
 
-      {/* Two-column area — ~40% */}
+      {/* Two-column area */}
       <div style={{
-        flex: '40 1 0',
+        flex: '38 1 0',
         display: 'flex',
         gap: 10,
         minHeight: 0,
@@ -207,11 +196,12 @@ export function TemplateCard({
             flexDirection: 'column',
           }}
         >
-          {/* Inner frame — 3:4 비율 */}
+          {/* Inner frame — 컨테이너 잔여 공간 기반 */}
           <div
             style={{
               width: '100%',
-              aspectRatio: '3/4',
+              flex: '4 1 0',
+              minHeight: 0,
               borderRadius: 10,
               overflow: 'hidden',
               backgroundColor: '#f0f0f0',
@@ -223,7 +213,7 @@ export function TemplateCard({
                 alt="분석한 이미지"
                 style={{
                   width: '100%',
-                  aspectRatio: '3/4',
+                  height: '100%',
                   objectFit: 'cover',
                   objectPosition: imgPosition,
                   display: 'block',
@@ -232,7 +222,7 @@ export function TemplateCard({
             ) : (
               <div style={{
                 width: '100%',
-                aspectRatio: '3/4',
+                height: '100%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -243,8 +233,8 @@ export function TemplateCard({
           </div>
           {/* Polaroid bottom strip — 플로팅 해시태그 */}
           <div style={{
-            flex: 1,
-            minHeight: 0,
+            flex: '1 0 0',
+            minHeight: '3.5dvh',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -259,7 +249,7 @@ export function TemplateCard({
                 <span
                   key={i}
                   style={{
-                    fontSize: '1.4dvh',
+                    fontSize: 'clamp(9px, 2.8vw, 13px)',
                     color: getMoodTextColor(keyword),
                     fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
                     fontWeight: 600,
@@ -268,12 +258,12 @@ export function TemplateCard({
                     backgroundColor: getMoodColor(keyword),
                     border: '1.5px solid #333',
                     borderRadius: 999,
-                    padding: '0.3dvh 0.9dvh',
+                    padding: '3px clamp(6px, 2vw, 12px)',
                     boxShadow: '1.5px 1.5px 0px #333',
                     transform: `rotate(${rotations[i]}deg) translateY(${offsets[i]}px)`,
                   }}
                 >
-                  #{keyword}
+                  #{keyword.length > 6 ? keyword.slice(0, 6) + '..' : keyword}
                 </span>
               )
             })}
@@ -345,7 +335,7 @@ export function TemplateCard({
 
       {/* Recommendations section */}
       <div style={{
-        flex: '28 1 0',
+        flex: '25.5 1 0',
         display: 'flex',
         flexDirection: 'column',
         marginTop: '1dvh',
