@@ -1,0 +1,70 @@
+{
+  "buttons": {
+    "share": "分享",
+    "save": "保存",
+    "close": "关闭",
+    "back": "返回",
+    "confirm": "确定",
+    "home": "HOME",
+    "shareCard": "SHARE"
+  },
+  "errors": {
+    "noFile": "请先选择一张图片",
+    "invalidType": "仅支持图片文件（JPEG、PNG、WebP）",
+    "fileTooLarge": "图片大小不能超过{maxSize}MB",
+    "uploadFailed": "分析过程中出现错误",
+    "unknownError": "出现未知错误"
+  },
+  "traits": {
+    "sexy": "性感",
+    "cute": "可爱",
+    "charisma": "魅力",
+    "darkness": "神秘",
+    "freshness": "清新",
+    "elegance": "优雅",
+    "freedom": "自由",
+    "luxury": "奢华",
+    "purity": "纯净",
+    "uniqueness": "独特"
+  },
+  "categories": {
+    "citrus": "柑橘",
+    "floral": "花香",
+    "woody": "木质",
+    "musky": "麝香",
+    "fruity": "果香",
+    "spicy": "辛香"
+  },
+  "categoryDescriptions": {
+    "citrus": "清新活力的柑橘香气",
+    "floral": "优雅女性化的花香",
+    "woody": "深沉温暖的木质香",
+    "musky": "温暖感性的麝香",
+    "fruity": "甜美多汁的果香",
+    "spicy": "大胆浓烈的辛香"
+  },
+  "traitDescriptions": {
+    "sexy": "感性而迷人的能量",
+    "cute": "迷人可爱的魅力",
+    "charisma": "强大的存在感和影响力",
+    "darkness": "神秘而深邃的魅力",
+    "freshness": "清新明朗的能量",
+    "elegance": "优雅高贵的气质",
+    "freedom": "不受束缚的自由灵魂",
+    "luxury": "奢华富贵的气场",
+    "purity": "干净纯洁的形象",
+    "uniqueness": "与众不同的个性"
+  },
+  "shareButtons": {
+    "linkShare": "链接分享",
+    "linkCopied": "已复制！",
+    "linkShareDesc": "通过聊天软件分享",
+    "imageShare": "图片分享",
+    "imageShareDesc": "发到Instagram、社交媒体",
+    "imageSave": "保存图片",
+    "imageSaveDesc": "保存到相册"
+  },
+  "defaultUser": "用户",
+  "loading": "Loading...",
+  "generatingCard": "正在生成卡片..."
+}

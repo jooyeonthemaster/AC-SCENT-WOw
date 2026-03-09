@@ -1,0 +1,19 @@
+{
+  "analyzingMessages": [
+    "Mengirim surat...",
+    "Idolamu sudah menerimanya!",
+    "Sedang melihat fotonya...",
+    "Sedang memikirkan aroma yang cocok...",
+    "Ini dia! Sedang memilih...",
+    "Sedang menulis balasan...",
+    "Hampir selesai!"
+  ],
+  "mailboxGuide": "Ketuk kotak surat untuk\nmelampirkan foto",
+  "tapToSelect": "Ketuk untuk memilih foto",
+  "completeLetterGuide": "Masukkan foto idolamu untuk melengkapi surat",
+  "sendLetter": "Kirim surat ke idolaku",
+  "replyArrived": "Balasan sudah tiba! \ud83d\udc8c",
+  "heroSubtitle": "Temukan Aroma Idolamu",
+  "letterTo": "To : My Muse \u2665",
+  "letterFrom": "From : Me \ud83d\udd8a\ufe0f"
+}

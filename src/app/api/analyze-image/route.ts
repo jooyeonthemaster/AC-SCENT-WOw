@@ -37,8 +37,9 @@ export async function POST(req: NextRequest) {
     logger.log(`🚀 [API ${requestId}] POST /api/analyze-image RECEIVED`)
 
     // 2. Analyze image with Gemini AI (단일 호출: 분석 + 향수 선택 + reasoning 모두 포함)
-    logger.log(`🔬 [API ${requestId}] Analyzing image with Gemini (with perfume DB)...`)
-    const analysis = await analyzeImageWithGemini(body.image)
+    const language = body.options?.language || 'ko'
+    logger.log(`🔬 [API ${requestId}] Analyzing image with Gemini (lang=${language})...`)
+    const analysis = await analyzeImageWithGemini(body.image, language)
     logger.log(`✅ [API ${requestId}] Analysis complete with ${analysis.matchingPerfumes?.length || 0} perfume candidates`)
 
     // 2.5. Apply diversity selection: pick 3 from Gemini's candidates
@@ -104,6 +105,7 @@ export async function POST(req: NextRequest) {
           traits: analysis.traits,
           characteristics: analysis.characteristics,
           mood: analysis.mood,
+          moodCategories: analysis.moodCategories,
           personality: analysis.personality,
         },
         recommendations,

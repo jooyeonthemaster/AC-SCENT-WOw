@@ -1,0 +1,19 @@
+{
+  "analyzingMessages": [
+    "手紙を送っています...",
+    "推しが手紙を受け取りました！",
+    "写真を見ています...",
+    "ぴったりの香りを考え中...",
+    "これだ！選んでいます...",
+    "返事を書いています...",
+    "もうすぐです！"
+  ],
+  "mailboxGuide": "ポストをタップして\n写真を添付してください",
+  "tapToSelect": "タップして写真を選択",
+  "completeLetterGuide": "推しの写真を入れて手紙を完成させてください",
+  "sendLetter": "推しに手紙を送る",
+  "replyArrived": "返事が届きました！💌",
+  "heroSubtitle": "推しの香りを見つけよう",
+  "letterTo": "To : My Muse ♥",
+  "letterFrom": "From : Me 🖊️"
+}

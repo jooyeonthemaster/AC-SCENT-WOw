@@ -1,0 +1,19 @@
+{
+  "analyzingMessages": [
+    "Sending your letter...",
+    "Your bias received it!",
+    "Looking at the photo...",
+    "Thinking about the perfect scent...",
+    "This one's the one! Choosing now...",
+    "Writing a reply...",
+    "Almost done!"
+  ],
+  "mailboxGuide": "Tap the mailbox to\nattach a photo",
+  "tapToSelect": "Tap to select a photo",
+  "completeLetterGuide": "Add your bias's photo to complete the letter",
+  "sendLetter": "Send a letter to my bias",
+  "replyArrived": "A reply has arrived! 💌",
+  "heroSubtitle": "Find Your Bias's Scent",
+  "letterTo": "To : My Muse ♥",
+  "letterFrom": "From : Me 🖊️"
+}

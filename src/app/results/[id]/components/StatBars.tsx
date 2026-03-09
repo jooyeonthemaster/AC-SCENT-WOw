@@ -3,7 +3,8 @@
 import { motion } from 'framer-motion'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import type { TraitScores } from '@/types/analysis'
-import { TRAIT_LABELS, TRAIT_ICONS } from '@/types/analysis'
+import { TRAIT_ICONS } from '@/types/analysis'
+import { useTranslation } from '@/i18n/useTranslation'
 
 interface StatBarsProps {
   traits: TraitScores
@@ -26,6 +27,7 @@ const TRAIT_COLORS: Record<string, string> = {
 }
 
 export function StatBars({ traits }: StatBarsProps) {
+  const { t } = useTranslation('common')
   const containerRef = useRef<HTMLDivElement>(null)
   const [circleSize, setCircleSize] = useState(40)
 
@@ -124,7 +126,7 @@ export function StatBars({ traits }: StatBarsProps) {
               className="font-semibold mt-0.5 text-center leading-tight"
               style={{ color, fontSize: Math.max(12, circleSize * 0.34) }}
             >
-              {TRAIT_LABELS[key]}
+              {t(`traits.${key}`)}
             </span>
           </motion.div>
         )

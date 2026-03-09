@@ -1,0 +1,70 @@
+{
+  "buttons": {
+    "share": "แชร์",
+    "save": "บันทึก",
+    "close": "ปิด",
+    "back": "กลับ",
+    "confirm": "ตกลง",
+    "home": "HOME",
+    "shareCard": "SHARE"
+  },
+  "errors": {
+    "noFile": "กรุณาเลือกรูปภาพก่อน",
+    "invalidType": "รองรับเฉพาะไฟล์รูปภาพ (JPEG, PNG, WebP)",
+    "fileTooLarge": "ขนาดรูปภาพต้องไม่เกิน {maxSize}MB",
+    "uploadFailed": "เกิดข้อผิดพลาดระหว่างการวิเคราะห์",
+    "unknownError": "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ"
+  },
+  "traits": {
+    "sexy": "เซ็กซี่",
+    "cute": "น่ารัก",
+    "charisma": "คาริสม่า",
+    "darkness": "ลึกลับ",
+    "freshness": "สดชื่น",
+    "elegance": "สง่างาม",
+    "freedom": "อิสระ",
+    "luxury": "หรูหรา",
+    "purity": "บริสุทธิ์",
+    "uniqueness": "เอกลักษณ์"
+  },
+  "categories": {
+    "citrus": "ซิตรัส",
+    "floral": "ฟลอรัล",
+    "woody": "วู้ดดี้",
+    "musky": "มัสกี้",
+    "fruity": "ฟรุตตี้",
+    "spicy": "สไปซี่"
+  },
+  "categoryDescriptions": {
+    "citrus": "กลิ่นซิตรัสสดชื่นและมีชีวิตชีวา",
+    "floral": "กลิ่นดอกไม้อันเป็นเอกลักษณ์",
+    "woody": "กลิ่นไม้อบอุ่นและลึกซึ้ง",
+    "musky": "กลิ่นมัสก์อบอุ่นและเย้ายวน",
+    "fruity": "กลิ่นผลไม้หวานฉ่ำ",
+    "spicy": "กลิ่นเครื่องเทศเข้มข้น"
+  },
+  "traitDescriptions": {
+    "sexy": "พลังงานเย้ายวนและน่าหลงใหล",
+    "cute": "เสน่ห์น่ารักและน่าเอ็นดู",
+    "charisma": "บุคลิกโดดเด่นและทรงอิทธิพล",
+    "darkness": "เสน่ห์ลึกลับและลุ่มลึก",
+    "freshness": "พลังงานสดใสและบริสุทธิ์",
+    "elegance": "บรรยากาศสง่างามและมีระดับ",
+    "freedom": "จิตวิญญาณอิสระไม่ถูกจำกัด",
+    "luxury": "ออร่าหรูหราและมั่งคั่ง",
+    "purity": "ภาพลักษณ์สะอาดและบริสุทธิ์",
+    "uniqueness": "บุคลิกที่โดดเด่นไม่เหมือนใคร"
+  },
+  "shareButtons": {
+    "linkShare": "แชร์ลิงก์",
+    "linkCopied": "คัดลอกแล้ว!",
+    "linkShareDesc": "แชร์ผ่านแอปแชท",
+    "imageShare": "แชร์รูปภาพ",
+    "imageShareDesc": "โพสต์ลง Instagram, SNS",
+    "imageSave": "บันทึกรูปภาพ",
+    "imageSaveDesc": "บันทึกลงแกลเลอรี"
+  },
+  "defaultUser": "ผู้ใช้",
+  "loading": "Loading...",
+  "generatingCard": "กำลังสร้างการ์ด..."
+}

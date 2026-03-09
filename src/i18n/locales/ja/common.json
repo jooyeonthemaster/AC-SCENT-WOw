@@ -1,0 +1,70 @@
+{
+  "buttons": {
+    "share": "共有",
+    "save": "保存",
+    "close": "閉じる",
+    "back": "戻る",
+    "confirm": "OK",
+    "home": "HOME",
+    "shareCard": "SHARE"
+  },
+  "errors": {
+    "noFile": "先に画像を選択してください",
+    "invalidType": "画像ファイルのみアップロード可能です（JPEG、PNG、WebP）",
+    "fileTooLarge": "画像サイズは{maxSize}MB以下にしてください",
+    "uploadFailed": "分析中にエラーが発生しました",
+    "unknownError": "不明なエラーが発生しました"
+  },
+  "traits": {
+    "sexy": "セクシー",
+    "cute": "キュート",
+    "charisma": "カリスマ",
+    "darkness": "ダーク",
+    "freshness": "フレッシュ",
+    "elegance": "エレガント",
+    "freedom": "フリーダム",
+    "luxury": "リッチ",
+    "purity": "ピュア",
+    "uniqueness": "ユニーク"
+  },
+  "categories": {
+    "citrus": "シトラス",
+    "floral": "フローラル",
+    "woody": "ウッディ",
+    "musky": "ムスキー",
+    "fruity": "フルーティ",
+    "spicy": "スパイシー"
+  },
+  "categoryDescriptions": {
+    "citrus": "爽やかで活気のあるシトラスの香り",
+    "floral": "優雅で女性らしいフローラルの香り",
+    "woody": "深く温かみのあるウッディの香り",
+    "musky": "温かく官能的なムスクの香り",
+    "fruity": "甘くジューシーなフルーティの香り",
+    "spicy": "大胆で強烈なスパイシーの香り"
+  },
+  "traitDescriptions": {
+    "sexy": "官能的で魅惑的なエネルギー",
+    "cute": "チャーミングで愛らしい魅力",
+    "charisma": "強い存在感と影響力",
+    "darkness": "神秘的で深い魅力",
+    "freshness": "爽やかで清らかなエネルギー",
+    "elegance": "気品があり上品な雰囲気",
+    "freedom": "自由奔放な魂",
+    "luxury": "豪華で贅沢なオーラ",
+    "purity": "清潔で純粋なイメージ",
+    "uniqueness": "個性的でユニークなキャラクター"
+  },
+  "shareButtons": {
+    "linkShare": "リンク共有",
+    "linkCopied": "コピー完了！",
+    "linkShareDesc": "メッセンジャーで共有",
+    "imageShare": "画像共有",
+    "imageShareDesc": "インスタ、SNSに投稿",
+    "imageSave": "画像保存",
+    "imageSaveDesc": "ギャラリーに保存"
+  },
+  "defaultUser": "ユーザー",
+  "loading": "Loading...",
+  "generatingCard": "カード作成中..."
+}

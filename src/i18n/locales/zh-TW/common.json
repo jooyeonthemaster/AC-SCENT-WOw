@@ -1,0 +1,70 @@
+{
+  "buttons": {
+    "share": "分享",
+    "save": "儲存",
+    "close": "關閉",
+    "back": "返回",
+    "confirm": "確定",
+    "home": "HOME",
+    "shareCard": "SHARE"
+  },
+  "errors": {
+    "noFile": "請先選擇一張圖片",
+    "invalidType": "僅支援圖片檔案（JPEG、PNG、WebP）",
+    "fileTooLarge": "圖片大小不能超過{maxSize}MB",
+    "uploadFailed": "分析過程中發生錯誤",
+    "unknownError": "發生未知錯誤"
+  },
+  "traits": {
+    "sexy": "性感",
+    "cute": "可愛",
+    "charisma": "魅力",
+    "darkness": "神秘",
+    "freshness": "清新",
+    "elegance": "優雅",
+    "freedom": "自由",
+    "luxury": "奢華",
+    "purity": "純淨",
+    "uniqueness": "獨特"
+  },
+  "categories": {
+    "citrus": "柑橘",
+    "floral": "花香",
+    "woody": "木質",
+    "musky": "麝香",
+    "fruity": "果香",
+    "spicy": "辛香"
+  },
+  "categoryDescriptions": {
+    "citrus": "清新活力的柑橘香氣",
+    "floral": "優雅女性化的花香",
+    "woody": "深沉溫暖的木質香",
+    "musky": "溫暖感性的麝香",
+    "fruity": "甜美多汁的果香",
+    "spicy": "大膽濃烈的辛香"
+  },
+  "traitDescriptions": {
+    "sexy": "感性而迷人的能量",
+    "cute": "迷人可愛的魅力",
+    "charisma": "強大的存在感和影響力",
+    "darkness": "神秘而深邃的魅力",
+    "freshness": "清新明朗的能量",
+    "elegance": "優雅高貴的氣質",
+    "freedom": "不受束縛的自由靈魂",
+    "luxury": "奢華富貴的氣場",
+    "purity": "乾淨純潔的形象",
+    "uniqueness": "與眾不同的個性"
+  },
+  "shareButtons": {
+    "linkShare": "連結分享",
+    "linkCopied": "已複製！",
+    "linkShareDesc": "透過通訊軟體分享",
+    "imageShare": "圖片分享",
+    "imageShareDesc": "發到Instagram、社群媒體",
+    "imageSave": "儲存圖片",
+    "imageSaveDesc": "儲存到相簿"
+  },
+  "defaultUser": "使用者",
+  "loading": "Loading...",
+  "generatingCard": "正在生成卡片..."
+}

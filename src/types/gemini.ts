@@ -5,6 +5,7 @@ export interface GeminiAnalysisResult {
   traits: Traits
   characteristics: Characteristics
   mood: string[]
+  moodCategories?: string[]
   personality: string
   matchingPerfumes: MatchingPerfume[]
 }

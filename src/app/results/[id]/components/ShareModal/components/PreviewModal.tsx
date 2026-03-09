@@ -101,7 +101,7 @@ export function PreviewModal({
                 fontSize: 14,
                 fontWeight: 700,
                 color: '#333',
-                fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                fontFamily: 'var(--font-sans)',
               }}>
                 미리보기
               </span>
@@ -169,7 +169,7 @@ export function PreviewModal({
                   color: '#fff',
                   fontSize: 15,
                   fontWeight: 700,
-                  fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                  fontFamily: 'var(--font-sans)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

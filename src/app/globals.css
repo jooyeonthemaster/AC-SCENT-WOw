@@ -6,8 +6,9 @@
 @tailwind utilities;
 
 :root {
-  /* Fonts */
-  --font-main: var(--font-noto-sans-kr), sans-serif;
+  /* Fonts — locale-aware sans-serif stack */
+  --font-sans: "Poppins", "Noto Sans KR", sans-serif;
+  --font-main: var(--font-sans);
   --font-hand: var(--font-gamja), cursive;
   --font-display: var(--font-jua), sans-serif;
 
@@ -84,6 +85,15 @@ body {
     font-family: var(--font-display);
   }
 }
+
+/* Locale-specific font stacks */
+html[data-locale="ko"] { --font-sans: "Poppins", "Noto Sans KR", sans-serif; }
+html[data-locale="en"] { --font-sans: "Poppins", sans-serif; }
+html[data-locale="ja"] { --font-sans: "Poppins", "Noto Sans JP", sans-serif; }
+html[data-locale="zh-CN"] { --font-sans: "Poppins", "Noto Sans SC", sans-serif; }
+html[data-locale="zh-TW"] { --font-sans: "Poppins", "Noto Sans TC", sans-serif; }
+html[data-locale="th"] { --font-sans: "Poppins", "Noto Sans Thai", sans-serif; }
+html[data-locale="id"] { --font-sans: "Poppins", sans-serif; }
 
 /* dvh 미지원 브라우저 폴백 */
 @supports not (height: 100dvh) {

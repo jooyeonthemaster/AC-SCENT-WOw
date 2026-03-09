@@ -1,0 +1,19 @@
+{
+  "leaveWarning": "不儲存的話結果會消失。確定要離開嗎？",
+  "notFound": "找不到結果",
+  "notFoundDescription": "分析結果已過期或不存在。\n請用新圖片重新分析。",
+  "notFoundAction": "返回首頁",
+  "selectPerfume": {
+    "title": "想分享哪款香水？",
+    "subtitle": "選擇一款香水放入分享卡片",
+    "otherPerfume": "選擇其他香水...",
+    "allPerfumesTitle": "選擇香水"
+  },
+  "templateCard": {
+    "checkReply": "點擊信封查看回信 💌",
+    "defaultHint": "什麼香？"
+  },
+  "perfumeDetail": {
+    "howTo": "請到門市的香氛風琴台親自體驗這款香味。拿起風琴台上的試香瓶，螢幕會顯示香味資訊和您愛豆的照片。打開瓶蓋聞一聞吧。"
+  }
+}

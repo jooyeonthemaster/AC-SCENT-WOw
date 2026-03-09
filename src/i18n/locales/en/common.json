@@ -1,0 +1,70 @@
+{
+  "buttons": {
+    "share": "Share",
+    "save": "Save",
+    "close": "Close",
+    "back": "Back",
+    "confirm": "OK",
+    "home": "HOME",
+    "shareCard": "SHARE"
+  },
+  "errors": {
+    "noFile": "Please select an image first",
+    "invalidType": "Only image files are supported (JPEG, PNG, WebP)",
+    "fileTooLarge": "Image must be smaller than {maxSize}MB",
+    "uploadFailed": "An error occurred during analysis",
+    "unknownError": "An unknown error occurred"
+  },
+  "traits": {
+    "sexy": "Sexy",
+    "cute": "Cute",
+    "charisma": "Charisma",
+    "darkness": "Mystery",
+    "freshness": "Fresh",
+    "elegance": "Elegant",
+    "freedom": "Free",
+    "luxury": "Luxury",
+    "purity": "Pure",
+    "uniqueness": "Unique"
+  },
+  "categories": {
+    "citrus": "Citrus",
+    "floral": "Floral",
+    "woody": "Woody",
+    "musky": "Musky",
+    "fruity": "Fruity",
+    "spicy": "Spicy"
+  },
+  "categoryDescriptions": {
+    "citrus": "Fresh and vibrant citrus scent",
+    "floral": "Elegant and feminine floral fragrance",
+    "woody": "Deep and warm woody aroma",
+    "musky": "Cozy and sensual musky scent",
+    "fruity": "Sweet and juicy fruity fragrance",
+    "spicy": "Bold and intense spicy aroma"
+  },
+  "traitDescriptions": {
+    "sexy": "Sensual and captivating energy",
+    "cute": "Charming and adorable appeal",
+    "charisma": "Strong presence and influence",
+    "darkness": "Mysterious and deep allure",
+    "freshness": "Refreshing and clear energy",
+    "elegance": "Graceful and dignified aura",
+    "freedom": "Unbound and free-spirited soul",
+    "luxury": "Luxurious and opulent aura",
+    "purity": "Clean and pristine image",
+    "uniqueness": "Distinctive and one-of-a-kind character"
+  },
+  "shareButtons": {
+    "linkShare": "Link Share",
+    "linkCopied": "Copied!",
+    "linkShareDesc": "Share via messenger",
+    "imageShare": "Image Share",
+    "imageShareDesc": "Post on Instagram, SNS",
+    "imageSave": "Save Image",
+    "imageSaveDesc": "Save to gallery"
+  },
+  "defaultUser": "User",
+  "loading": "Loading...",
+  "generatingCard": "Creating card..."
+}

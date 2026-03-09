@@ -4,7 +4,7 @@ import { Perfume } from '@/lib/data/perfumes'
 export interface AnalysisRequestBody {
   image: string
   options?: {
-    language?: 'ko' | 'en'
+    language?: 'ko' | 'en' | 'ja' | 'zh-CN' | 'zh-TW' | 'th' | 'id'
   }
 }
 

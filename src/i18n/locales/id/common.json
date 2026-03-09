@@ -1,0 +1,70 @@
+{
+  "buttons": {
+    "share": "Bagikan",
+    "save": "Simpan",
+    "close": "Tutup",
+    "back": "Kembali",
+    "confirm": "OK",
+    "home": "HOME",
+    "shareCard": "SHARE"
+  },
+  "errors": {
+    "noFile": "Silakan pilih gambar terlebih dahulu",
+    "invalidType": "Hanya file gambar yang didukung (JPEG, PNG, WebP)",
+    "fileTooLarge": "Ukuran gambar harus kurang dari {maxSize}MB",
+    "uploadFailed": "Terjadi kesalahan saat analisis",
+    "unknownError": "Terjadi kesalahan yang tidak diketahui"
+  },
+  "traits": {
+    "sexy": "Seksi",
+    "cute": "Imut",
+    "charisma": "Karisma",
+    "darkness": "Misteri",
+    "freshness": "Segar",
+    "elegance": "Elegan",
+    "freedom": "Bebas",
+    "luxury": "Mewah",
+    "purity": "Murni",
+    "uniqueness": "Unik"
+  },
+  "categories": {
+    "citrus": "Sitrus",
+    "floral": "Floral",
+    "woody": "Woody",
+    "musky": "Musky",
+    "fruity": "Fruity",
+    "spicy": "Spicy"
+  },
+  "categoryDescriptions": {
+    "citrus": "Aroma sitrus yang segar dan bersemangat",
+    "floral": "Wangi bunga yang elegan dan feminin",
+    "woody": "Aroma kayu yang hangat dan mendalam",
+    "musky": "Wangi musk yang hangat dan sensual",
+    "fruity": "Aroma buah yang manis dan segar",
+    "spicy": "Aroma rempah yang berani dan intens"
+  },
+  "traitDescriptions": {
+    "sexy": "Energi sensual dan memikat",
+    "cute": "Pesona yang manis dan menggemaskan",
+    "charisma": "Kehadiran yang kuat dan berpengaruh",
+    "darkness": "Daya tarik misterius dan mendalam",
+    "freshness": "Energi yang segar dan jernih",
+    "elegance": "Aura anggun dan bermartabat",
+    "freedom": "Jiwa bebas yang tak terikat",
+    "luxury": "Aura mewah dan berkelas",
+    "purity": "Citra bersih dan murni",
+    "uniqueness": "Karakter yang khas dan tak tertandingi"
+  },
+  "shareButtons": {
+    "linkShare": "Bagikan Link",
+    "linkCopied": "Tersalin!",
+    "linkShareDesc": "Bagikan lewat messenger",
+    "imageShare": "Bagikan Gambar",
+    "imageShareDesc": "Post ke Instagram, media sosial",
+    "imageSave": "Simpan Gambar",
+    "imageSaveDesc": "Simpan ke galeri"
+  },
+  "defaultUser": "Pengguna",
+  "loading": "Loading...",
+  "generatingCard": "Membuat kartu..."
+}

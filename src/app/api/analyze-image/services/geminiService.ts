@@ -8,11 +8,12 @@ import { logger } from '@/lib/utils/logger'
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 export async function analyzeImageWithGemini(
-  imageBase64: string
+  imageBase64: string,
+  language: string = 'ko',
 ): Promise<GeminiAnalysisResult> {
   try {
-    // 1. Build analysis prompt (향수 DB 포함)
-    const prompt = buildAnalysisPrompt({ language: 'ko' })
+    // 1. Build analysis prompt (향수 DB 포함 + 언어별 출력 지시)
+    const prompt = buildAnalysisPrompt({ language: language as 'ko' | 'en' | 'ja' | 'zh-CN' | 'zh-TW' | 'th' | 'id' })
 
     // 2. Remove data URL prefix if present
     const imageData = imageBase64.replace(/^data:image\/\w+;base64,/, '')

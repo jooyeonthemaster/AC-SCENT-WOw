@@ -10,7 +10,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
   spicy: '🌶️',
 }
 
-const cardFont = { fontFamily: '"Poppins", "Noto Sans KR", sans-serif' } as const
+const cardFont = { fontFamily: 'var(--font-sans)' } as const
 
 interface ScentProfileCircleProps {
   category: string

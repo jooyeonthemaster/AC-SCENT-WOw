@@ -8,6 +8,8 @@ import type { PerfumeRecommendation } from '@/app/api/analyze-image/types'
 import type { Perfume } from '@/lib/data/perfumes'
 import { perfumes } from '@/lib/data/perfumes'
 import { getAccentColor } from '@/lib/utils/envelopeColor'
+import { useTranslation } from '@/i18n/useTranslation'
+import { useLocalizedPerfume } from '@/i18n/helpers/localizedPerfume'
 
 interface PerfumeSelectModalProps {
   isOpen: boolean
@@ -29,6 +31,8 @@ export function PerfumeSelectModal({
   recommendations,
   onSelect,
 }: PerfumeSelectModalProps) {
+  const { t } = useTranslation('results')
+  const { getName: getPerfumeName } = useLocalizedPerfume()
   const [showAllPerfumes, setShowAllPerfumes] = useState(false)
 
   const handleClose = () => {
@@ -118,12 +122,12 @@ export function PerfumeSelectModal({
                         fontSize: 20,
                         fontWeight: 700,
                         color: '#333',
-                        fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                        fontFamily: 'var(--font-sans)',
                         margin: 0,
                         marginBottom: 4,
                       }}
                     >
-                      어떤 향수를 공유할까요?
+                      {t('selectPerfume.title')}
                     </h2>
                     <p
                       style={{
@@ -134,7 +138,7 @@ export function PerfumeSelectModal({
                         marginBottom: 20,
                       }}
                     >
-                      공유 카드에 들어갈 향수를 선택하세요
+                      {t('selectPerfume.subtitle')}
                     </p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -158,7 +162,7 @@ export function PerfumeSelectModal({
                               border: '2px solid #333',
                               boxShadow: '3px 3px 0px #333',
                               cursor: 'pointer',
-                              fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                              fontFamily: 'var(--font-sans)',
                               transition: 'transform 0.1s',
                             }}
                           >
@@ -184,7 +188,7 @@ export function PerfumeSelectModal({
                             </span>
                             {/* 향수 이름 */}
                             <p style={{ fontSize: 17, fontWeight: 700, color: '#333', margin: 0, textAlign: 'left', flex: 1 }}>
-                              {rec.perfume.name}
+                              {getPerfumeName(rec.perfume.id)}
                             </p>
                             <Check size={16} color="#ccc" />
                           </button>
@@ -201,14 +205,14 @@ export function PerfumeSelectModal({
                           backgroundColor: '#F5F0E8',
                           border: '2px dashed #999',
                           cursor: 'pointer',
-                          fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                          fontFamily: 'var(--font-sans)',
                           fontSize: 14,
                           fontWeight: 600,
                           color: '#666',
                           transition: 'transform 0.1s',
                         }}
                       >
-                        다른 향수 선택하기...
+                        {t('selectPerfume.otherPerfume')}
                       </button>
                     </div>
                   </motion.div>
@@ -246,11 +250,11 @@ export function PerfumeSelectModal({
                           fontSize: 18,
                           fontWeight: 700,
                           color: '#333',
-                          fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                          fontFamily: 'var(--font-sans)',
                           margin: 0,
                         }}
                       >
-                        향수 선택
+                        {t('selectPerfume.allPerfumesTitle')}
                       </h2>
                     </div>
 
@@ -276,7 +280,7 @@ export function PerfumeSelectModal({
                             border: '1.5px solid #333',
                             boxShadow: '2px 2px 0px #333',
                             cursor: 'pointer',
-                            fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                            fontFamily: 'var(--font-sans)',
                             textAlign: 'left',
                           }}
                         >
@@ -284,7 +288,7 @@ export function PerfumeSelectModal({
                             {p.id}
                           </p>
                           <p style={{ fontSize: 13, fontWeight: 700, color: '#333', margin: 0, marginTop: 2 }}>
-                            {p.name}
+                            {getPerfumeName(p.id)}
                           </p>
                         </button>
                       ))}

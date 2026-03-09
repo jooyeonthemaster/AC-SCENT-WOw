@@ -1,0 +1,19 @@
+{
+  "leaveWarning": "保存しないと結果が消えます。ページを離れますか？",
+  "notFound": "結果が見つかりません",
+  "notFoundDescription": "分析結果の有効期限が切れたか、存在しません。\n新しい画像で再分析してみてください。",
+  "notFoundAction": "ホームに戻る",
+  "selectPerfume": {
+    "title": "どの香水を共有しますか？",
+    "subtitle": "シェアカードに入れる香水を選んでください",
+    "otherPerfume": "他の香水を選ぶ...",
+    "allPerfumesTitle": "香水を選択"
+  },
+  "templateCard": {
+    "checkReply": "手紙をタップして返事を確認しよう 💌",
+    "defaultHint": "どんな香り？"
+  },
+  "perfumeDetail": {
+    "howTo": "店舗のセントオルガンでこの香りを直接お試しください。オルガンの上のボトルを持ち上げると、モニターに香りの情報と推しの写真が表示されます。キャップを開けて香りをお楽しみください。"
+  }
+}

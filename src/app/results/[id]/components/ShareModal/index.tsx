@@ -8,6 +8,7 @@ import { domToPng } from 'modern-screenshot'
 import { ShareCardNew } from '../ShareCardNew'
 import { ShareModalProps } from './types'
 import { SHARE_CARD_DIMENSIONS } from './constants'
+import { useTranslation } from '@/i18n/useTranslation'
 
 export function ShareModal({
   isOpen,
@@ -22,6 +23,7 @@ export function ShareModal({
   accentColor,
   timestamp,
 }: ShareModalProps) {
+  const { t } = useTranslation('common')
   const cardRef = useRef<HTMLDivElement>(null)
   const cachedBlobRef = useRef<Blob | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -257,9 +259,9 @@ export function ShareModal({
                   <span style={{
                     fontSize: 13,
                     color: '#888',
-                    fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                    fontFamily: 'var(--font-sans)',
                   }}>
-                    카드 생성 중...
+                    {t('generatingCard')}
                   </span>
                 </div>
               ) : previewUrl ? (
@@ -310,7 +312,7 @@ export function ShareModal({
                   color: '#fff',
                   fontSize: 'clamp(11px, 1.6dvh, 14px)',
                   fontWeight: 700,
-                  fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                  fontFamily: 'var(--font-sans)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -319,7 +321,7 @@ export function ShareModal({
                 }}
               >
                 <Share2 size={14} />
-                공유
+                {t('buttons.share')}
               </button>
 
               {/* 저장하기 */}
@@ -336,7 +338,7 @@ export function ShareModal({
                   color: '#333',
                   fontSize: 'clamp(11px, 1.6dvh, 14px)',
                   fontWeight: 700,
-                  fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                  fontFamily: 'var(--font-sans)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -345,7 +347,7 @@ export function ShareModal({
                 }}
               >
                 <Download size={14} />
-                저장
+                {t('buttons.save')}
               </button>
 
               {/* 뒤로가기 */}
@@ -361,7 +363,7 @@ export function ShareModal({
                   color: '#333',
                   fontSize: 'clamp(11px, 1.6dvh, 14px)',
                   fontWeight: 700,
-                  fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                  fontFamily: 'var(--font-sans)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -370,7 +372,7 @@ export function ShareModal({
                 }}
               >
                 <ArrowLeft size={14} />
-                뒤로
+                {t('buttons.back')}
               </button>
             </div>
           </motion.div>

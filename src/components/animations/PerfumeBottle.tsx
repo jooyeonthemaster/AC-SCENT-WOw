@@ -171,7 +171,7 @@ export function EnvelopeCard({ perfumeName, index, recommendation, hint, onOpen,
             style={{
               fontSize: '1.5dvh',
               color: '#333',
-              fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+              fontFamily: 'var(--font-sans)',
               fontWeight: 500,
             }}
           >

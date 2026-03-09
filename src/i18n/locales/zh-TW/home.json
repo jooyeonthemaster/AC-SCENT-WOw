@@ -1,0 +1,19 @@
+{
+  "analyzingMessages": [
+    "正在寄出信件...",
+    "愛豆收到了你的信！",
+    "正在看照片...",
+    "在想配什麼香味好呢...",
+    "就是這個！正在選擇...",
+    "正在寫回信...",
+    "馬上就好！"
+  ],
+  "mailboxGuide": "點擊郵筒\n添加照片",
+  "tapToSelect": "點擊選擇照片",
+  "completeLetterGuide": "放入愛豆照片來完成這封信吧",
+  "sendLetter": "給愛豆寄一封信",
+  "replyArrived": "收到回信啦！💌",
+  "heroSubtitle": "找到你偶像的專屬香氣",
+  "letterTo": "To : My Muse ♥",
+  "letterFrom": "From : Me 🖊️"
+}

@@ -1,0 +1,19 @@
+{
+  "leaveWarning": "Hasil akan hilang jika tidak disimpan. Tinggalkan halaman ini?",
+  "notFound": "Hasil tidak ditemukan",
+  "notFoundDescription": "Hasil analisis telah kedaluwarsa atau tidak ada.\nCoba lagi dengan gambar baru.",
+  "notFoundAction": "Kembali ke Beranda",
+  "selectPerfume": {
+    "title": "Parfum mana yang ingin dibagikan?",
+    "subtitle": "Pilih parfum untuk kartu berbagi",
+    "otherPerfume": "Pilih parfum lain...",
+    "allPerfumesTitle": "Pilih Parfum"
+  },
+  "templateCard": {
+    "checkReply": "Ketuk surat untuk melihat balasan \ud83d\udc8c",
+    "defaultHint": "Aroma apa?"
+  },
+  "perfumeDetail": {
+    "howTo": "Kunjungi scent organ di toko untuk mencoba aroma ini secara langsung. Angkat botol di atas organ dan layar akan menampilkan info aroma beserta foto idolamu. Buka tutupnya untuk mencium aromanya."
+  }
+}

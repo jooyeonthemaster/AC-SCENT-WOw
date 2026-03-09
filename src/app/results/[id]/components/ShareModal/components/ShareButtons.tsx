@@ -1,4 +1,5 @@
 import { Link2, Image, Download, Loader2, Check } from 'lucide-react'
+import { useTranslation } from '@/i18n/useTranslation'
 
 interface ShareButtonsProps {
   copied: boolean
@@ -19,7 +20,7 @@ const btnBase: React.CSSProperties = {
   border: '2px solid #333',
   boxShadow: '3px 3px 0px #333',
   cursor: 'pointer',
-  fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+  fontFamily: 'var(--font-sans)',
   transition: 'transform 0.1s',
 }
 
@@ -41,6 +42,7 @@ export function ShareButtons({
   onImageShare,
   onPreview,
 }: ShareButtonsProps) {
+  const { t } = useTranslation('common')
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* 링크 공유 */}
@@ -61,10 +63,10 @@ export function ShareButtons({
         </span>
         <div style={{ textAlign: 'left' }}>
           <p style={{ fontSize: 18, fontWeight: 700, color: '#333', margin: 0 }}>
-            {copied ? '복사 완료!' : '링크 공유'}
+            {copied ? t('shareButtons.linkCopied') : t('shareButtons.linkShare')}
           </p>
           <p style={{ fontSize: 14, color: '#333', margin: 0, marginTop: 2 }}>
-            카카오톡, 메신저로 공유하기
+            {t('shareButtons.linkShareDesc')}
           </p>
         </div>
       </button>
@@ -87,10 +89,10 @@ export function ShareButtons({
         </span>
         <div style={{ textAlign: 'left' }}>
           <p style={{ fontSize: 18, fontWeight: 700, color: '#333', margin: 0 }}>
-            이미지 공유
+            {t('shareButtons.imageShare')}
           </p>
           <p style={{ fontSize: 14, color: '#333', margin: 0, marginTop: 2 }}>
-            인스타 스토리, SNS에 올리기
+            {t('shareButtons.imageShareDesc')}
           </p>
         </div>
       </button>
@@ -113,10 +115,10 @@ export function ShareButtons({
         </span>
         <div style={{ textAlign: 'left' }}>
           <p style={{ fontSize: 18, fontWeight: 700, color: '#333', margin: 0 }}>
-            이미지 저장
+            {t('shareButtons.imageSave')}
           </p>
           <p style={{ fontSize: 14, color: '#333', margin: 0, marginTop: 2 }}>
-            갤러리에 저장하기
+            {t('shareButtons.imageSaveDesc')}
           </p>
         </div>
       </button>

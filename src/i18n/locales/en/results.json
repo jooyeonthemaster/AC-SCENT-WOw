@@ -1,0 +1,19 @@
+{
+  "leaveWarning": "Your results will be lost if not saved. Leave this page?",
+  "notFound": "Results not found",
+  "notFoundDescription": "The analysis has expired or does not exist.\nTry again with a new image.",
+  "notFoundAction": "Back to Home",
+  "selectPerfume": {
+    "title": "Which perfume to share?",
+    "subtitle": "Choose a perfume for your share card",
+    "otherPerfume": "Choose another perfume...",
+    "allPerfumesTitle": "Select Perfume"
+  },
+  "templateCard": {
+    "checkReply": "Tap the letters to see the reply 💌",
+    "defaultHint": "What scent?"
+  },
+  "perfumeDetail": {
+    "howTo": "Visit the scent organ at the store to experience this fragrance in person. Lift the bottle on the organ and the monitor will display the scent info along with your bias's photo. Open the cap to smell the fragrance."
+  }
+}

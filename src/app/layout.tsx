@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Poppins, Noto_Sans_KR, Gamja_Flower, Jua } from 'next/font/google'
+import { LocaleProvider } from '@/i18n/context'
 import './globals.css'
 
 const poppins = Poppins({
@@ -53,6 +54,9 @@ export const metadata: Metadata = {
     description: '좋아하는 셀럽의 사진으로 나에게 어울리는 향수를 찾아보세요',
     images: ['/images/og_logo.jpg'],
   },
+  other: {
+    google: 'notranslate',
+  },
 }
 
 export default function RootLayout({
@@ -61,9 +65,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ko" className={`${poppins.variable} ${notoSansKR.variable} ${gamjaFlower.variable} ${jua.variable}`}>
+    <html lang="ko" translate="no" className={`notranslate ${poppins.variable} ${notoSansKR.variable} ${gamjaFlower.variable} ${jua.variable}`}>
       <body className="font-sans">
-        <main>{children}</main>
+        <LocaleProvider>
+          <main>{children}</main>
+        </LocaleProvider>
       </body>
     </html>
   )

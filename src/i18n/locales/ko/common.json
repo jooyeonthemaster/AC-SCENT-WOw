@@ -1,0 +1,70 @@
+{
+  "buttons": {
+    "share": "공유",
+    "save": "저장",
+    "close": "닫기",
+    "back": "뒤로",
+    "confirm": "확인",
+    "home": "HOME",
+    "shareCard": "SHARE"
+  },
+  "errors": {
+    "noFile": "이미지를 먼저 선택해주세요",
+    "invalidType": "이미지 파일만 업로드 가능합니다 (JPEG, PNG, WebP)",
+    "fileTooLarge": "이미지 크기는 {maxSize}MB 이하여야 합니다",
+    "uploadFailed": "분석 중 오류가 발생했습니다",
+    "unknownError": "알 수 없는 오류가 발생했습니다"
+  },
+  "traits": {
+    "sexy": "섹시함",
+    "cute": "귀여움",
+    "charisma": "카리스마",
+    "darkness": "신비로움",
+    "freshness": "상쾌함",
+    "elegance": "우아함",
+    "freedom": "자유로움",
+    "luxury": "고급스러움",
+    "purity": "순수함",
+    "uniqueness": "독특함"
+  },
+  "categories": {
+    "citrus": "시트러스",
+    "floral": "플로럴",
+    "woody": "우디",
+    "musky": "머스크",
+    "fruity": "프루티",
+    "spicy": "스파이시"
+  },
+  "categoryDescriptions": {
+    "citrus": "상쾌하고 활기찬 시트러스 향",
+    "floral": "우아하고 여성스러운, 꽃의 향기",
+    "woody": "깊고 따뜻한 나무 향",
+    "musky": "포근하고 관능적인 머스크 향",
+    "fruity": "달콤하고 즙이 많은 과일 향",
+    "spicy": "자극적이고 강렬한 스파이시 향"
+  },
+  "traitDescriptions": {
+    "sexy": "관능적이고 매혹적인 에너지",
+    "cute": "애교스럽고 사랑스러운 매력",
+    "charisma": "강한 존재감과 영향력",
+    "darkness": "신비롭고 깊은 어둠의 매력",
+    "freshness": "상쾌하고 맑은 에너지",
+    "elegance": "고상하고 품격 있는 분위기",
+    "freedom": "구속되지 않는 자유분방한 영혼",
+    "luxury": "고급스럽고 풍요로운 아우라",
+    "purity": "깨끗하고 맑은 순백의 이미지",
+    "uniqueness": "남다르고 개성 강한 정도"
+  },
+  "shareButtons": {
+    "linkShare": "링크 공유",
+    "linkCopied": "복사 완료!",
+    "linkShareDesc": "카카오톡, 메신저로 공유하기",
+    "imageShare": "이미지 공유",
+    "imageShareDesc": "인스타 스토리, SNS에 올리기",
+    "imageSave": "이미지 저장",
+    "imageSaveDesc": "갤러리에 저장하기"
+  },
+  "defaultUser": "사용자",
+  "loading": "Loading...",
+  "generatingCard": "카드 생성 중..."
+}

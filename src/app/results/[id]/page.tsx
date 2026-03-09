@@ -18,8 +18,9 @@ import type { Perfume } from '@/lib/data/perfumes'
 import type { TraitScores, ScentCategoryScores } from '@/types/analysis'
 import { logger } from '@/lib/utils/logger'
 import { serifFont } from '@/lib/constants/styles'
-import { PERFUME_STORY_PRESETS } from '@/lib/data/perfumeStoryPresets'
 import { getAccentColor } from '@/lib/utils/envelopeColor'
+import { useTranslation } from '@/i18n/useTranslation'
+import { useLocalizedPerfume } from '@/i18n/helpers/localizedPerfume'
 
 interface AnalysisData {
   analysisId: string
@@ -29,6 +30,7 @@ interface AnalysisData {
     traits: TraitScores
     characteristics: ScentCategoryScores
     mood: string[]
+    moodCategories?: string[]
     personality: string
   }
   recommendations: PerfumeRecommendation[]
@@ -36,6 +38,10 @@ interface AnalysisData {
 }
 
 export default function ResultsPage() {
+  const { t } = useTranslation('results')
+  const { t: tCommon } = useTranslation('common')
+  const { t: tStory } = useTranslation('perfumeStories')
+  const { getName: getPerfumeName } = useLocalizedPerfume()
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
@@ -83,14 +89,12 @@ export default function ResultsPage() {
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault()
-      e.returnValue = '결과를 저장하지 않으면 사라집니다. 페이지를 떠나시겠습니까?'
+      e.returnValue = t('leaveWarning')
       return e.returnValue
     }
     const handlePopState = () => {
       window.history.pushState(null, '', window.location.pathname)
-      const confirmLeave = window.confirm(
-        '결과를 저장하지 않으면 사라집니다. 페이지를 떠나시겠습니까?'
-      )
+      const confirmLeave = window.confirm(t('leaveWarning'))
       if (confirmLeave) {
         window.removeEventListener('popstate', handlePopState)
         window.history.back()
@@ -103,7 +107,7 @@ export default function ResultsPage() {
       window.removeEventListener('beforeunload', handleBeforeUnload)
       window.removeEventListener('popstate', handlePopState)
     }
-  }, [])
+  }, [t])
 
   if (loading) {
     return (
@@ -116,8 +120,8 @@ export default function ResultsPage() {
   if (!data || !data.recommendations || data.recommendations.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-dvh px-8 text-center bg-white">
-        <h1 className="text-lg text-[#1A1A1A] mb-3" style={serifFont}>결과를 찾을 수 없습니다</h1>
-        <p className="text-xs text-[#888] mb-6 leading-relaxed">분석 결과가 만료되었거나 존재하지 않습니다.</p>
+        <h1 className="text-lg text-[#1A1A1A] mb-3" style={serifFont}>{t('notFound')}</h1>
+        <p className="text-xs text-[#888] mb-6 leading-relaxed">{t('notFoundDescription')}</p>
         <button
           onClick={() => router.push('/')}
           className="min-h-[44px] px-6 py-3 bg-[#1A1A1A] text-white text-sm tracking-wider"
@@ -142,9 +146,9 @@ export default function ResultsPage() {
     ? recommendations.find(r => r.perfume.id === selectedPerfume.id)
     : recommendations[0]
   const selectedConfidence = selectedRecommendation?.matchConfidence ?? 0.8
-  // 향 스토리: 추천 향수 → reasoning, 다른 향수 → 프리셋 멘트
+  // 향 스토리: 추천 향수 → reasoning, 다른 향수 → i18n 프리셋 멘트
   const selectedScentStory = selectedRecommendation?.reasoning
-    || (selectedPerfume ? PERFUME_STORY_PRESETS[selectedPerfume.id] : undefined)
+    || (selectedPerfume ? tStory(selectedPerfume.id) : undefined)
     || recommendations[0]?.reasoning
     || ''
 
@@ -157,9 +161,7 @@ export default function ResultsPage() {
         timestamp={timestamp}
         onShareOpen={() => setIsPerfumeSelectOpen(true)}
         onHomeClick={() => {
-          const confirmLeave = window.confirm(
-            '결과를 저장하지 않으면 사라집니다. 페이지를 떠나시겠습니까?'
-          )
+          const confirmLeave = window.confirm(t('leaveWarning'))
           if (confirmLeave) {
             router.push('/')
           }
@@ -179,10 +181,10 @@ export default function ResultsPage() {
         onClose={() => setIsShareModalOpen(false)}
         userImage={uploadedImage}
         twitterName={analysis.description}
-        userName="사용자"
+        userName={tCommon('defaultUser')}
         userGender="Unisex"
-        perfumeName={selectedPerfume?.name || recommendations[0]?.perfume.name || "향수"}
-        perfumeBrand={selectedPerfume?.id || recommendations[0]?.perfume.id || "브랜드"}
+        perfumeName={getPerfumeName(selectedPerfume?.id || recommendations[0]?.perfume.id || '')}
+        perfumeBrand={selectedPerfume?.id || recommendations[0]?.perfume.id || "AC'SCENT"}
         accentColor={getAccentColor(selectedPerfume?.primaryColor || recommendations[0]?.perfume.primaryColor)}
         timestamp={timestamp}
         analysisData={{

@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
-import { UPLOAD_CONSTRAINTS, ERROR_MESSAGES } from '../constants'
+import { UPLOAD_CONSTRAINTS } from '../constants'
+import { useLocale } from '@/i18n/context'
+import { useTranslation } from '@/i18n/useTranslation'
 import { logger } from '@/lib/utils/logger'
 
 const STORAGE_MAX_DIMENSION = 1200
@@ -42,6 +44,8 @@ interface UseImageUploadReturn {
 }
 
 export function useImageUpload(): UseImageUploadReturn {
+  const { locale } = useLocale()
+  const { t } = useTranslation('common')
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -54,19 +58,19 @@ export function useImageUpload(): UseImageUploadReturn {
     setError(null)
 
     if (acceptedFiles.length === 0) {
-      setError(ERROR_MESSAGES.INVALID_TYPE)
+      setError(t('errors.invalidType'))
       return
     }
 
     const selectedFile = acceptedFiles[0]
 
     if (!UPLOAD_CONSTRAINTS.acceptedTypes.includes(selectedFile.type)) {
-      setError(ERROR_MESSAGES.INVALID_TYPE)
+      setError(t('errors.invalidType'))
       return
     }
 
     if (selectedFile.size > UPLOAD_CONSTRAINTS.maxSize) {
-      setError(ERROR_MESSAGES.FILE_TOO_LARGE)
+      setError(t('errors.fileTooLarge', { maxSize: UPLOAD_CONSTRAINTS.maxSizeMB }))
       return
     }
 
@@ -79,7 +83,7 @@ export function useImageUpload(): UseImageUploadReturn {
 
       if (!result || !result.startsWith('data:image/')) {
         logger.error('Invalid data URL generated:', result?.substring(0, 50))
-        setError(ERROR_MESSAGES.UNKNOWN_ERROR)
+        setError(t('errors.unknownError'))
         return
       }
 
@@ -88,15 +92,15 @@ export function useImageUpload(): UseImageUploadReturn {
 
     reader.onerror = (e) => {
       logger.error('FileReader error:', e)
-      setError(ERROR_MESSAGES.UNKNOWN_ERROR)
+      setError(t('errors.unknownError'))
     }
 
     reader.readAsDataURL(selectedFile)
-  }, [])
+  }, [t])
 
   const analyzeImage = useCallback(async () => {
     if (!preview) {
-      setError(ERROR_MESSAGES.NO_FILE)
+      setError(t('errors.noFile'))
       return
     }
 
@@ -117,7 +121,7 @@ export function useImageUpload(): UseImageUploadReturn {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: compressed,
-          options: { language: 'ko' },
+          options: { language: locale },
         }),
         signal: abortController.signal,
       })
@@ -128,7 +132,7 @@ export function useImageUpload(): UseImageUploadReturn {
       logger.log(`[Analysis] API completed in ${duration}s`)
 
       if (!data.success) {
-        throw new Error(data.error || ERROR_MESSAGES.UPLOAD_FAILED)
+        throw new Error(data.error || t('errors.uploadFailed'))
       }
 
       const id = data.data.analysisId
@@ -144,10 +148,10 @@ export function useImageUpload(): UseImageUploadReturn {
         return
       }
       logger.error('Analysis error:', err)
-      setError(err instanceof Error ? err.message : ERROR_MESSAGES.UPLOAD_FAILED)
+      setError(err instanceof Error ? err.message : t('errors.uploadFailed'))
       setIsAnalyzing(false)
     }
-  }, [preview])
+  }, [preview, locale, t])
 
   const abortAnalysis = useCallback(() => {
     abortRef.current?.abort()

@@ -5,11 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Download, Share2, Loader2 } from 'lucide-react'
 import { domToPng } from 'modern-screenshot'
 import { useScrollLock } from '@/app/results/[id]/components/ShareModal/hooks/useScrollLock'
-const cardFont = { fontFamily: '"Poppins", "Noto Sans KR", sans-serif' } as const
+const cardFont = { fontFamily: 'var(--font-sans)' } as const
 import NextImage from 'next/image'
 import { ScentProfileGrid } from './ScentProfileGrid'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { PerfumeRecommendation } from '@/app/api/analyze-image/types'
+import { useTranslation } from '@/i18n/useTranslation'
+import { useLocalizedPerfume } from '@/i18n/helpers/localizedPerfume'
 
 // Template: 2.jpeg (3072 x 5504) → display at 320 x 573
 // Scale factor: 9.6 (3072 / 320)
@@ -39,7 +41,7 @@ const TEMPLATE_HIRES = '/images/2.jpeg' // original for capture (6.2MB → domTo
 // Scent Story box constraints
 const STORY_BOX_HEIGHT = 78 // 401-316 = 85, with padding ~78
 const STORY_LINE_HEIGHT = 1.5
-const STORY_MAX_FONT = 11
+const STORY_MAX_FONT = 12
 const STORY_MIN_FONT = 7
 
 // Content box dimensions
@@ -48,8 +50,10 @@ const BOX_WIDTH = 280
 
 function getStoryFontSize(text: string): number {
   if (!text) return STORY_MAX_FONT
+  const wideChars = (text.match(/[\u2E80-\u9FFF\uF900-\uFAFF\u0E00-\u0E7F\uAC00-\uD7AF]/g) || []).length
+  const charWidth = 0.55 + (wideChars / text.length) * 0.45
   for (let size = STORY_MAX_FONT; size >= STORY_MIN_FONT; size--) {
-    const charsPerLine = Math.floor(BOX_WIDTH / (size * 0.55))
+    const charsPerLine = Math.floor(BOX_WIDTH / (size * charWidth))
     const lineCount = Math.ceil(text.length / charsPerLine)
     const totalHeight = lineCount * size * STORY_LINE_HEIGHT
     if (totalHeight <= STORY_BOX_HEIGHT) return size
@@ -85,6 +89,8 @@ function CardContent({
   templateSrc: string
   forCapture?: boolean
 }) {
+  const { t } = useTranslation('results')
+  const { getMainScent, getSubScent1, getSubScent2 } = useLocalizedPerfume()
   return (
     <>
       {/* Background template image */}
@@ -175,9 +181,9 @@ function CardContent({
 
       {/* Notes: Top / Middle / Base */}
       {[
-        { label: 'Top', value: perfume.mainScent.name, y: 122 },
-        { label: 'Middle', value: perfume.subScent1.name, y: 144 },
-        { label: 'Base', value: perfume.subScent2.name, y: 166 },
+        { label: 'Top', value: getMainScent(perfume.id), y: 122 },
+        { label: 'Middle', value: getSubScent1(perfume.id), y: 144 },
+        { label: 'Base', value: getSubScent2(perfume.id), y: 166 },
       ].map(({ label, value, y }) => (
         <div
           key={label}
@@ -242,7 +248,9 @@ function CardContent({
           lineHeight: STORY_LINE_HEIGHT,
           color: '#000',
           margin: 0,
-          wordBreak: 'keep-all',
+          wordBreak: 'break-word',
+          overflowWrap: 'break-word',
+          width: '100%',
           ...cardFont,
         }}>
           {reasoning}
@@ -266,14 +274,16 @@ function CardContent({
         }}
       >
         <p style={{
-          fontSize: 12,
+          fontSize: 11,
           lineHeight: 1.5,
           color: '#000',
           margin: 0,
-          wordBreak: 'keep-all',
+          wordBreak: 'break-word',
+          overflowWrap: 'break-word',
+          width: '100%',
           ...cardFont,
         }}>
-          매장 내 향 오르간에서 이 향을 직접 만나보세요. 오르간 위 시향 병을 들어올리면 모니터에 향 정보와 최애 사진이 표시됩니다. 용기의 뚜껑을 열어 향을 맡아보세요.
+          {t('perfumeDetail.howTo')}
         </p>
       </div>
 
@@ -305,6 +315,7 @@ export function PerfumeDetailModal({
   uploadedImage,
   analysisDate,
 }: PerfumeDetailModalProps) {
+  const { t: tc } = useTranslation('common')
   useScrollLock(isOpen)
 
   const hiddenCardRef = useRef<HTMLDivElement>(null)
@@ -560,7 +571,7 @@ export function PerfumeDetailModal({
                   }}
                 >
                   {!btnEnabled ? <Loader2 size={13} className="animate-spin" /> : <Share2 size={13} />}
-                  <span>공유</span>
+                  <span>{tc('buttons.share')}</span>
                 </button>
 
                 {/* 저장 */}
@@ -583,7 +594,7 @@ export function PerfumeDetailModal({
                   }}
                 >
                   <Download size={13} />
-                  <span>저장</span>
+                  <span>{tc('buttons.save')}</span>
                 </button>
 
                 {/* 닫기 */}
@@ -605,7 +616,7 @@ export function PerfumeDetailModal({
                   }}
                 >
                   <X size={13} />
-                  <span>닫기</span>
+                  <span>{tc('buttons.close')}</span>
                 </button>
               </div>
             </motion.div>

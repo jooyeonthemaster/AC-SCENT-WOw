@@ -3,8 +3,9 @@
 import { forwardRef } from 'react'
 import { ShareAnalysisData, TraitScores, TRAIT_ICONS } from '@/types/analysis'
 import type { ScentCategoryScores } from '@/types/analysis'
-import { TRAIT_LABELS } from '@/lib/constants/labels'
 import { SHARE_CARD_DIMENSIONS } from '../ShareModal/constants'
+import { useTranslation } from '@/i18n/useTranslation'
+import { useLocalizedPerfume } from '@/i18n/helpers/localizedPerfume'
 
 // ── Constants ──
 
@@ -57,8 +58,10 @@ function fitFontSize(
   text: string, boxW: number, boxH: number, max: number, min: number,
 ): number {
   if (!text) return max
+  const wideChars = (text.match(/[\u2E80-\u9FFF\uF900-\uFAFF\u0E00-\u0E7F\uAC00-\uD7AF]/g) || []).length
+  const cw = 0.55 + (wideChars / text.length) * 0.45
   for (let s = max; s >= min; s--) {
-    const cpl = Math.floor(boxW / (s * 0.55))
+    const cpl = Math.floor(boxW / (s * cw))
     const lines = Math.ceil(text.length / cpl)
     if (lines * s * 1.5 <= boxH) return s
   }
@@ -133,6 +136,8 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
     { userImage, twitterName, perfumeName, perfumeBrand, analysisData, accentColor = '#BB0000', timestamp },
     ref,
   ) {
+    const { t } = useTranslation('common')
+    const { getMainScent, getSubScent1, getSubScent2 } = useLocalizedPerfume()
     const { traits, matchingPerfumes, scentCategories } = analysisData
     const persona = matchingPerfumes?.[0]?.persona
     const personality = analysisData.personality || ''
@@ -148,9 +153,9 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
 
     // Notes
     const notes = [
-      { label: 'Top', name: persona?.mainScent?.name || '-' },
-      { label: 'Mid', name: persona?.subScent1?.name || '-' },
-      { label: 'Base', name: persona?.subScent2?.name || '-' },
+      { label: 'Top', name: persona?.id ? getMainScent(persona.id) : '-' },
+      { label: 'Mid', name: persona?.id ? getSubScent1(persona.id) : '-' },
+      { label: 'Base', name: persona?.id ? getSubScent2(persona.id) : '-' },
     ]
 
     // Date
@@ -181,7 +186,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
           height: H,
           position: 'relative',
           overflow: 'hidden',
-          fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+          fontFamily: 'var(--font-sans)',
           backgroundColor: '#F5F0E8',
           padding: L.pad,
           boxSizing: 'border-box',
@@ -302,7 +307,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                         fontSize: 9, fontWeight: 700, marginTop: 1,
                         color: TRAIT_COLORS[key], whiteSpace: 'nowrap',
                       }}>
-                        {TRAIT_LABELS[key as keyof TraitScores]}
+                        {t(`traits.${key}`)}
                       </span>
                     </div>
                   ))}
@@ -320,7 +325,7 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
                         fontSize: 9, fontWeight: 700, marginTop: 1,
                         color: TRAIT_COLORS[key], whiteSpace: 'nowrap',
                       }}>
-                        {TRAIT_LABELS[key as keyof TraitScores]}
+                        {t(`traits.${key}`)}
                       </span>
                     </div>
                   ))}
@@ -391,7 +396,8 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
           }}>
             <p style={{
               fontSize: descFont, lineHeight: 1.5,
-              color: '#333', margin: 0, textAlign: 'center', wordBreak: 'keep-all',
+              color: '#333', margin: 0, textAlign: 'center',
+              wordBreak: 'break-word', overflowWrap: 'break-word', width: '100%',
             }}>
               {twitterName}
             </p>
@@ -409,9 +415,10 @@ export const ShareCardNew = forwardRef<HTMLDivElement, ShareCardProps>(
           }}>
             <p style={{
               fontSize: storyFont, lineHeight: 1.5,
-              color: '#333', margin: 0, textAlign: 'center', wordBreak: 'keep-all',
+              color: '#333', margin: 0, textAlign: 'center',
+              wordBreak: 'break-word', overflowWrap: 'break-word', width: '100%',
             }}>
-              {personality || '당신만의 특별한 향기 이야기'}
+              {personality || ''}
             </p>
           </div>
         </div>

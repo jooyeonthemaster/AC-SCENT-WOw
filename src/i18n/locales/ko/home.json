@@ -1,0 +1,19 @@
+{
+  "analyzingMessages": [
+    "편지를 보내는 중이에요...",
+    "최애가 편지를 받았어요!",
+    "사진을 보고 있어요...",
+    "어떤 향이 어울릴까 고민 중...",
+    "이 향이 딱이야! 하고 고르는 중...",
+    "답장을 쓰고 있어요...",
+    "거의 다 됐어요!"
+  ],
+  "mailboxGuide": "우체통을 터치해서\n사진을 첨부해주세요",
+  "tapToSelect": "탭하여 사진 선택",
+  "completeLetterGuide": "최애 사진을 넣어서 편지를 완성해주세요",
+  "sendLetter": "최애에게 편지 보내기",
+  "replyArrived": "답장이 도착했어요! 💌",
+  "heroSubtitle": "최애의 향을 찾아라",
+  "letterTo": "To : My Muse ♥",
+  "letterFrom": "From : Me 🖊️"
+}

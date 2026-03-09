@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Home, Share2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
@@ -9,7 +9,14 @@ import { StatBars } from '../StatBars'
 import { serifFont } from '@/lib/constants/styles'
 import type { PerfumeRecommendation } from '@/app/api/analyze-image/types'
 import type { TraitScores } from '@/types/analysis'
-
+import { useTranslation } from '@/i18n/useTranslation'
+import {
+  getMoodColorByCategory,
+  getMoodTextColorByCategory,
+  getMoodColorFallback,
+  getMoodTextColorFallback,
+} from '@/i18n/helpers/moodColors'
+import { useLocalizedPerfume } from '@/i18n/helpers/localizedPerfume'
 import { ASSETS, ACTIONS } from './constants'
 
 const EnvelopeCard = dynamic(
@@ -37,8 +44,12 @@ function fitFontSize(
   minFont: number,
 ): number {
   if (!text) return maxFont
+  // CJK / Thai 등 전각·넓은 문자 비율에 따라 글자 폭 계수 조정
+  const wideChars = (text.match(/[\u2E80-\u9FFF\uF900-\uFAFF\u0E00-\u0E7F\uAC00-\uD7AF]/g) || []).length
+  const wideRatio = wideChars / text.length
+  const charWidth = 0.55 + wideRatio * 0.45 // 전각 100%일 때 ~1.0, 라틴 100%일 때 ~0.55
   for (let size = maxFont; size >= minFont; size--) {
-    const charsPerLine = Math.floor(boxWidth / (size * 0.55))
+    const charsPerLine = Math.floor(boxWidth / (size * charWidth))
     const lineCount = Math.ceil(text.length / charsPerLine)
     const totalHeight = lineCount * size * 1.5
     if (totalHeight <= boxHeight) return size
@@ -47,75 +58,11 @@ function fitFontSize(
 }
 
 
-// mainScent 이름 → 이모지 + 짧은 힌트
-const SCENT_HINTS: Record<string, string> = {
-  블랙베리: '🫐 달콤~', 만다린: '🍊 상큼!', 스트로베리: '🍓 달달♡', 베르가못: '🍋 싱그러운~',
-  오렌지: '🍊 톡 쏘는!', 캐럿: '🥕 풋풋한~', 로즈: '🌹 우아하게~', 튜베로즈: '🤍 황홀한~',
-  블라썸: '🌼 화사한~', 튤립: '🌷 사랑스러운♡', 라임: '💚 청량!', 은방울꽃: '🔔 맑은~',
-  유자: '🍋 새콤달콤!', 민트: '🧊 시원~', 페티그레인: '🍃 깔끔한~', 샌달우드: '🪵 포근한~',
-  레몬: '🍋 톡톡!', 핑크페퍼: '🌶️ 스파이시~', 바다: '🌊 시원한~', 타임: '🌿 허브향~',
-  머스크: '☁️ 부드러운~', 화이트로즈: '🤍 순수한♡', 스웨이드: '🧸 따뜻한~', 라벤더: '💜 편안한~',
-  사이프러스: '🌲 깊은~', 스모키: '🖤 묵직한~', 레더: '🖤 시크!', 바이올렛: '💜 몽환적~',
-  무화과: '🍈 달콤한~', 페퍼: '🌶️ 스파이시!',
-}
-
-function getScentHint(mainScentName: string): string {
-  for (const [key, hint] of Object.entries(SCENT_HINTS)) {
-    if (mainScentName.includes(key)) return hint
-  }
-  return '어떤 향?'
-}
-
 const boxStyle: React.CSSProperties = {
   border: '2px solid #333',
   borderRadius: 16,
   backgroundColor: '#FFFDF8',
   boxShadow: '3px 3px 0px #333',
-}
-
-// 키워드 → 배경색 매핑
-const MOOD_COLORS: Record<string, string> = {
-  // 어두운/강렬한 계열
-  시크: '#2D2D2D', 다크: '#37474F', 카리스마: '#4A148C', 열정: '#FFCDD2',
-  섹시: '#E91E63', 레더: '#3E2723', 스모키: '#455A64',
-  // 핑크/로맨틱 계열
-  로맨틱: '#F8BBD0', 귀여운: '#FCE4EC', 부드러운: '#FDE7F0', 사랑: '#F48FB1',
-  달콤: '#F8BBD0', 러블리: '#F48FB1',
-  // 보라/몽환 계열
-  몽환: '#E1BEE7', 우아: '#F3E5F5', 신비: '#D1C4E9', 바이올렛: '#CE93D8',
-  // 파랑/청량 계열
-  쿨: '#B3E5FC', 청량: '#81D4FA', 깔끔: '#E0F7FA', 차분: '#B2DFDB',
-  시원: '#80DEEA', 맑은: '#B3E5FC',
-  // 초록/자연 계열
-  여유: '#C8E6C9', 자유: '#A5D6A7', 편안: '#C5E1A5', 자연: '#AED581',
-  허브: '#C5E1A5', 풋풋: '#DCEDC8', 싱그러운: '#C8E6C9',
-  // 노랑/따뜻한 계열
-  따뜻: '#FFCCBC', 포근: '#FFF9C4', 밝은: '#FFF176', 활발: '#FFE082',
-  화사: '#FFE0B2', 상큼: '#FFCC80', 햇살: '#FFF176', 에너지: '#FFD54F',
-  // 베이지/세련 계열
-  세련: '#CFD8DC', 감성: '#D7CCC8', 빈티지: '#EFEBE9', 도시: '#ECEFF1',
-  고급: '#FFF8E1', 클래식: '#D7CCC8', 모던: '#CFD8DC',
-  // 순수/맑은 계열
-  순수: '#E8EAF6', 투명: '#E3F2FD', 깨끗: '#E0F7FA', 가벼운: '#F3E5F5',
-  // 오렌지/과일 계열
-  톡톡: '#FFAB91', 발랄: '#FFAB91', 비타민: '#FFB74D',
-  // 갈색/나무 계열
-  우디: '#BCAAA4', 나무: '#A1887F', 포레스트: '#81C784',
-}
-
-function getMoodColor(keyword: string): string {
-  for (const [key, color] of Object.entries(MOOD_COLORS)) {
-    if (keyword.includes(key)) return color
-  }
-  return '#F5F0E8'
-}
-
-function getMoodTextColor(keyword: string): string {
-  const darkKeywords = ['시크', '다크', '카리스마', '섹시', '레더', '스모키']
-  for (const k of darkKeywords) {
-    if (keyword.includes(k)) return '#fff'
-  }
-  return '#333'
 }
 
 interface TemplateCardProps {
@@ -124,6 +71,7 @@ interface TemplateCardProps {
     traits: TraitScores
     personality: string
     mood?: string[]
+    moodCategories?: string[]
   }
   recommendations: PerfumeRecommendation[]
   uploadedImage?: string
@@ -140,6 +88,9 @@ export function TemplateCard({
   onShareOpen,
   onHomeClick,
 }: TemplateCardProps) {
+  const { t: scentHint } = useTranslation('scentHints')
+  const { t } = useTranslation('results')
+  const { getName: getPerfumeName } = useLocalizedPerfume()
   const [openedBoxes, setOpenedBoxes] = useState<boolean[]>([false, false, false])
   const [imgPosition, setImgPosition] = useState<string>('center')
 
@@ -149,9 +100,29 @@ export function TemplateCard({
     setImgPosition('top center')
   }, [uploadedImage])
 
-  // 1.5배 키운 px 값 → dvh 변환 (기준 뷰포트 850px)
-  const storyFontPx = fitFontSize(analysis.personality, 160, 100, 27, 14)
-  const storyFontSize = `${(storyFontPx / 850 * 100).toFixed(2)}dvh`
+  // ref 기반 동적 폰트 사이즈 계산
+  const storyBoxRef = useRef<HTMLDivElement>(null)
+  const [storyFontSize, setStoryFontSize] = useState('1.6dvh')
+
+  const updateStoryFont = useCallback(() => {
+    const el = storyBoxRef.current
+    if (!el || !analysis.personality) return
+    // clientWidth/Height는 padding 포함, border 제외 → padding 빼서 텍스트 영역 산출
+    const w = el.clientWidth - 20  // padding 10*2
+    const h = el.clientHeight - 16 // padding 8*2
+    if (w <= 0 || h <= 0) return
+    const px = fitFontSize(analysis.personality, w, h, 22, 10)
+    setStoryFontSize(`${px}px`)
+  }, [analysis.personality])
+
+  useEffect(() => {
+    updateStoryFont()
+    const el = storyBoxRef.current
+    if (!el) return
+    const ro = new ResizeObserver(updateStoryFont)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [updateStoryFont])
 
   return (
     <motion.div
@@ -256,17 +227,20 @@ export function TemplateCard({
             {(analysis.mood ?? []).slice(0, 2).map((keyword, i) => {
               const rotations = [-2.5, 1.5]
               const offsets = [-1, 2]
+              const category = analysis.moodCategories?.[i]
+              const bgColor = category ? getMoodColorByCategory(category) : getMoodColorFallback(keyword)
+              const textColor = category ? getMoodTextColorByCategory(category) : getMoodTextColorFallback(keyword)
               return (
                 <span
                   key={i}
                   style={{
                     fontSize: 'clamp(9px, 2.8vw, 13px)',
-                    color: getMoodTextColor(keyword),
-                    fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                    color: textColor,
+                    fontFamily: 'var(--font-sans)',
                     fontWeight: 600,
                     letterSpacing: '0.02em',
                     whiteSpace: 'nowrap',
-                    backgroundColor: getMoodColor(keyword),
+                    backgroundColor: bgColor,
                     border: '1.5px solid #333',
                     borderRadius: 999,
                     padding: '3px clamp(6px, 2vw, 12px)',
@@ -289,6 +263,7 @@ export function TemplateCard({
             style={{ height: '3.4dvh', objectFit: 'contain', alignSelf: 'center', marginBottom: '0.5dvh' }}
           />
           <div
+            ref={storyBoxRef}
             style={{
               ...boxStyle,
               flex: 1,
@@ -306,8 +281,10 @@ export function TemplateCard({
                 color: '#333',
                 margin: 0,
                 textAlign: 'center',
-                wordBreak: 'keep-all',
-                fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word',
+                width: '100%',
+                fontFamily: 'var(--font-sans)',
               }}
             >
               {analysis.personality}
@@ -374,10 +351,10 @@ export function TemplateCard({
             textAlign: 'center',
             margin: '0 0 0.5dvh',
             flexShrink: 0,
-            fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+            fontFamily: 'var(--font-sans)',
             letterSpacing: '0.03em',
           }}>
-            편지를 눌러서 답장을 확인해보세요 💌
+            {t('templateCard.checkReply')}
           </p>
           <div
             style={{
@@ -392,10 +369,10 @@ export function TemplateCard({
             {recommendations.slice(0, 3).map((rec, idx) => (
               <EnvelopeCard
                 key={idx}
-                perfumeName={rec.perfume.name}
+                perfumeName={getPerfumeName(rec.perfume.id)}
                 index={idx}
                 recommendation={rec}
-                hint={getScentHint(rec.perfume.mainScent?.name || '')}
+                hint={scentHint(rec.perfume.id)}
                 uploadedImage={uploadedImage}
                 analysisDate={timestamp}
                 onOpen={() => {

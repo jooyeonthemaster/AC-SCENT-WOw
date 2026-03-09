@@ -6,19 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useDropzone } from 'react-dropzone'
 import { Camera, X, Send } from 'lucide-react'
 import { useImageUpload } from '@/components/upload/ImageUploader/hooks/useImageUpload'
+import { useTranslation } from '@/i18n/useTranslation'
+import { useLocale } from '@/i18n/context'
 import Image from 'next/image'
 
 type Phase = 'idle' | 'letter' | 'hasImage' | 'analyzing' | 'done'
-
-const ANALYZING_MESSAGES = [
-  '편지를 보내는 중이에요...',
-  '최애가 편지를 받았어요!',
-  '사진을 보고 있어요...',
-  '어떤 향이 어울릴까 고민 중...',
-  '이 향이 딱이야! 하고 고르는 중...',
-  '답장을 쓰고 있어요...',
-  '거의 다 됐어요!',
-]
 
 const MESSAGE_INTERVAL = 3000
 
@@ -26,6 +18,8 @@ const DONE_DISPLAY_MS = 1500
 
 export function WritingStep() {
   const router = useRouter()
+  const { locale } = useLocale()
+  const { t, tArray } = useTranslation('home')
   const {
     preview,
     isAnalyzing,
@@ -36,6 +30,7 @@ export function WritingStep() {
     clearImage,
   } = useImageUpload()
 
+  const analyzingMessages = tArray('analyzingMessages')
   const [phase, setPhase] = useState<Phase>('idle')
   const [messageIndex, setMessageIndex] = useState(0)
 
@@ -59,7 +54,7 @@ export function WritingStep() {
     if (phase !== 'analyzing') return
     const interval = setInterval(() => {
       setMessageIndex(prev =>
-        prev < ANALYZING_MESSAGES.length - 1 ? prev + 1 : prev
+        prev < analyzingMessages.length - 1 ? prev + 1 : prev
       )
     }, MESSAGE_INTERVAL)
     return () => clearInterval(interval)
@@ -142,7 +137,7 @@ export function WritingStep() {
         </div>
 
         {/* 히어로 텍스트 */}
-        <div className="flex items-center justify-center" style={{ margin: '2dvh 0', flexShrink: 0 }}>
+        <div className="flex flex-col items-center justify-center" style={{ margin: '2dvh 0', flexShrink: 0 }}>
           <img
             src="/images/55555.png"
             alt="최애 향기를 찾아라"
@@ -152,6 +147,19 @@ export function WritingStep() {
               objectFit: 'contain',
             }}
           />
+          {locale !== 'ko' && (
+            <p
+              style={{
+                marginTop: 6,
+                fontSize: 'clamp(15px, 4vw, 18px)',
+                color: '#888',
+                fontFamily: 'var(--font-sans)',
+                letterSpacing: '0.02em',
+              }}
+            >
+              {t('heroSubtitle')}
+            </p>
+          )}
         </div>
 
         {/* 변동 영역 */}
@@ -174,11 +182,10 @@ export function WritingStep() {
                     fontSize: 'clamp(14px, 3.8vw, 17px)',
                     color: '#666',
                     lineHeight: 1.6,
+                    whiteSpace: 'pre-line',
                   }}
                 >
-                  우체통을 터치해서
-                  <br />
-                  사진을 첨부해주세요
+                  {t('mailboxGuide')}
                 </p>
 
                 {/* 우체통 이미지 */}
@@ -233,12 +240,12 @@ export function WritingStep() {
                       margin: 0,
                       fontSize: 'clamp(15px, 4vw, 19px)',
                       color: '#333',
-                      fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                      fontFamily: 'var(--font-sans)',
                       fontWeight: 600,
                       letterSpacing: '0.05em',
                     }}
                   >
-                    To : My Muse ♥
+                    {t('letterTo')}
                   </p>
                   <motion.div
                     animate={{ y: [0, -4, 0] }}
@@ -247,7 +254,7 @@ export function WritingStep() {
                   >
                     <Camera className="w-8 h-8" style={{ color: '#AAA' }} strokeWidth={1.5} />
                     <p style={{ fontSize: 'clamp(14px, 3.8vw, 16px)', color: '#999', margin: 0 }}>
-                      탭하여 사진 선택
+                      {t('tapToSelect')}
                     </p>
                   </motion.div>
                   <p
@@ -258,12 +265,12 @@ export function WritingStep() {
                       margin: 0,
                       fontSize: 'clamp(15px, 4vw, 19px)',
                       color: '#333',
-                      fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                      fontFamily: 'var(--font-sans)',
                       fontWeight: 600,
                       letterSpacing: '0.05em',
                     }}
                   >
-                    From : Me 🖊️
+                    {t('letterFrom')}
                   </p>
                 </div>
 
@@ -276,7 +283,7 @@ export function WritingStep() {
                       lineHeight: 1.5,
                     }}
                   >
-                    최애 사진을 넣어서 편지를 완성해주세요
+                    {t('completeLetterGuide')}
                   </p>
                 </div>
               </motion.div>
@@ -315,12 +322,12 @@ export function WritingStep() {
                       zIndex: 10,
                       fontSize: 'clamp(15px, 4vw, 19px)',
                       color: '#333',
-                      fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                      fontFamily: 'var(--font-sans)',
                       fontWeight: 600,
                       letterSpacing: '0.05em',
                     }}
                   >
-                    To : My Muse ♥
+                    {t('letterTo')}
                   </p>
                   <div
                     className="absolute overflow-hidden"
@@ -346,12 +353,12 @@ export function WritingStep() {
                       zIndex: 10,
                       fontSize: 'clamp(15px, 4vw, 19px)',
                       color: '#333',
-                      fontFamily: '"Poppins", "Noto Sans KR", sans-serif',
+                      fontFamily: 'var(--font-sans)',
                       fontWeight: 600,
                       letterSpacing: '0.05em',
                     }}
                   >
-                    From : Me 🖊️
+                    {t('letterFrom')}
                   </p>
 
                   <motion.button
@@ -405,7 +412,7 @@ export function WritingStep() {
                     }}
                   >
                     <Send className="w-4 h-4" />
-                    최애에게 편지 보내기
+                    {t('sendLetter')}
                   </motion.button>
                 </div>
               </motion.div>
@@ -533,13 +540,13 @@ export function WritingStep() {
                         color: '#1A1A1A',
                       }}
                     >
-                      {ANALYZING_MESSAGES[messageIndex]}
+                      {analyzingMessages[messageIndex]}
                     </motion.p>
                   </AnimatePresence>
 
                   {/* 프로그레스 dot */}
                   <div className="flex gap-2 mt-5">
-                    {ANALYZING_MESSAGES.map((_, i) => (
+                    {analyzingMessages.map((_, i) => (
                       <motion.div
                         key={i}
                         className="rounded-full"
@@ -600,7 +607,7 @@ export function WritingStep() {
                       color: '#1A1A1A',
                     }}
                   >
-                    답장이 도착했어요! 💌
+                    {t('replyArrived')}
                   </p>
                 </motion.div>
               )}
